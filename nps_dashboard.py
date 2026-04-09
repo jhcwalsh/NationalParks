@@ -320,8 +320,19 @@ def load_seasonal_parks() -> pd.DataFrame:
     return _nps_db.get_all_parks(DB_PATH)
 
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_all_cached_models() -> dict[str, dict]:
+    """Load all pre-computed models from the DB in one shot at startup."""
+    if not _SEASONAL_AVAILABLE or not DB_PATH.exists():
+        return {}
+    return _nps_db.load_all_park_models(DB_PATH)
+
+
 def load_model(unit_code: str) -> dict | None:
+    """Return a model dict — from the pre-computed cache, or built on the fly."""
+    cached = load_all_cached_models()
+    if unit_code in cached:
+        return cached[unit_code]
     if not _SEASONAL_AVAILABLE:
         return None
     m = _nps_model.build_busyness_model(unit_code, DB_PATH)
@@ -413,6 +424,48 @@ def comparison_chart(models: dict[str, dict], month: int | None) -> go.Figure:
         barmode="group",
     )
     return fig
+
+
+def _recommend_from_cache(
+    all_models: dict[str, dict],
+    parks_df: pd.DataFrame,
+    state: str | None,
+    month: int | None,
+    max_score: float,
+) -> list[dict]:
+    """Filter pre-computed models instead of building them on the fly."""
+    df = parks_df.copy()
+    if state:
+        df = df[df["state"].str.contains(state, na=False)]
+    results = []
+    for _, park in df.iterrows():
+        uc = park["unit_code"]
+        m = all_models.get(uc)
+        if m is None:
+            continue
+        if month is not None:
+            entry = next((s for s in m["monthly_scores"] if s["month"] == month), None)
+            if entry and entry["score"] <= max_score:
+                results.append({
+                    "unit_code": uc,
+                    "name": m["name"],
+                    "score": entry["score"],
+                    "month_name": entry["month_name"],
+                    "state": park.get("state", ""),
+                    "yoy_trend": m["yoy_trend"],
+                })
+        else:
+            avg_score = sum(s["score"] for s in m["monthly_scores"]) / 12
+            if avg_score <= max_score:
+                results.append({
+                    "unit_code": uc,
+                    "name": m["name"],
+                    "avg_score": round(avg_score, 1),
+                    "state": park.get("state", ""),
+                    "yoy_trend": m["yoy_trend"],
+                })
+    results.sort(key=lambda x: x.get("score", x.get("avg_score", 0)))
+    return results
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1068,13 +1121,13 @@ with tab6:
         with rc3:
             rec_max = st.slider("Max busyness score", 0, 100, 50, 5, key="t6_max")
 
-        with st.spinner("Searching…"):
-            recs = _nps_model.recommend_parks(
-                db_path=DB_PATH,
-                state=rec_state if rec_state != "Any" else None,
-                month=rec_month,
-                max_score=rec_max,
-            )
+        recs = _recommend_from_cache(
+            load_all_cached_models(),
+            seasonal_parks_df,
+            state=rec_state if rec_state != "Any" else None,
+            month=rec_month,
+            max_score=rec_max,
+        )
 
         if not recs:
             st.info("No parks match. Try raising the max score or changing filters.")

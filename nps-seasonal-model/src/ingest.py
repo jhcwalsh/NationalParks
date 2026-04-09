@@ -35,6 +35,7 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 import db
 import clean
+import model as _model
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 log = logging.getLogger(__name__)
@@ -477,6 +478,7 @@ def run_pipeline(
     if seed_only:
         log.info("Seed-only mode: loading built-in data for top-%d parks", len(SEED_PARKS))
         _load_seed(years, db_path)
+        _precompute(db_path)
         return
 
     # ── Attempt real downloads ──────────────────────────────────────────────
@@ -516,6 +518,7 @@ def run_pipeline(
         _load_seed(years, db_path, limit_parks=seed_needed)
 
     log.info("Ingest complete. Pipeline finished for years %s", years)
+    _precompute(db_path)
 
 
 def _store_visits(df: pd.DataFrame, db_path: Path | str) -> None:
@@ -565,6 +568,14 @@ def _load_seed(
             filtered_visits,
         )
     log.info("Seed: stored %d visit rows", len(filtered_visits))
+
+
+# ── Pre-compute ───────────────────────────────────────────────────────────────
+
+def _precompute(db_path: Path | str) -> None:
+    log.info("Pre-computing seasonal models…")
+    count = _model.precompute_all_models(db_path)
+    log.info("Cached %d park models in park_models table.", count)
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────

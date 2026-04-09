@@ -217,6 +217,23 @@ def build_all_models(
     return models
 
 
+def precompute_all_models(db_path: Path | str = db.DEFAULT_DB) -> int:
+    """Build every park model and save to the park_models cache table.
+
+    Called automatically at the end of the ingest pipeline so the app never
+    has to compute models on the fly.  Returns the number of models saved.
+    """
+    parks = db.get_all_parks(db_path)
+    saved = 0
+    with db.get_conn(db_path) as conn:
+        for _, row in parks.iterrows():
+            m = build_busyness_model(row["unit_code"], db_path)
+            if m is not None:
+                db.save_park_model(conn, row["unit_code"], m.to_dict())
+                saved += 1
+    return saved
+
+
 # ── Helper functions ──────────────────────────────────────────────────────────
 
 def _top_n_months(scores: pd.Series, n: int) -> list[int]:

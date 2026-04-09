@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
+import time as _time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
@@ -30,6 +32,12 @@ CREATE TABLE IF NOT EXISTS monthly_visits (
 
 CREATE INDEX IF NOT EXISTS idx_mv_unit ON monthly_visits (unit_code);
 CREATE INDEX IF NOT EXISTS idx_mv_year ON monthly_visits (year);
+
+CREATE TABLE IF NOT EXISTS park_models (
+    unit_code   TEXT    PRIMARY KEY,
+    model_json  TEXT    NOT NULL,
+    computed_at INTEGER NOT NULL
+);
 """
 
 
@@ -171,3 +179,49 @@ def bulk_upsert_visits(
             [(r[0].upper(), r[1], r[2], r[3]) for r in rows],
         )
     return len(rows)
+
+
+# ── Pre-computed model cache ───────────────────────────────────────────────────
+
+def save_park_model(
+    conn: sqlite3.Connection,
+    unit_code: str,
+    model_dict: dict,
+) -> None:
+    """Upsert a pre-computed model dict into the park_models cache table."""
+    conn.execute(
+        """
+        INSERT INTO park_models (unit_code, model_json, computed_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT (unit_code) DO UPDATE SET
+            model_json  = excluded.model_json,
+            computed_at = excluded.computed_at
+        """,
+        (unit_code.upper(), json.dumps(model_dict), int(_time.time())),
+    )
+
+
+def load_park_model(
+    unit_code: str,
+    db_path: Path | str = DEFAULT_DB,
+) -> dict | None:
+    """Return the pre-computed model dict for a single park, or None if absent."""
+    with get_conn(db_path) as conn:
+        row = conn.execute(
+            "SELECT model_json FROM park_models WHERE unit_code = ?",
+            (unit_code.upper(),),
+        ).fetchone()
+    return json.loads(row["model_json"]) if row else None
+
+
+def load_all_park_models(
+    db_path: Path | str = DEFAULT_DB,
+) -> dict[str, dict]:
+    """Return all pre-computed models as {unit_code: model_dict}."""
+    if not Path(db_path).exists():
+        return {}
+    with get_conn(db_path) as conn:
+        rows = conn.execute(
+            "SELECT unit_code, model_json FROM park_models"
+        ).fetchall()
+    return {r["unit_code"]: json.loads(r["model_json"]) for r in rows}
