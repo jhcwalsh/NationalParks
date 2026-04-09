@@ -259,7 +259,7 @@ def auto_parse(text: str, unit_code: str | None = None) -> pd.DataFrame:
 
 # ── Seed dataset ─────────────────────────────────────────────────────────────
 
-# Top-20 most-visited parks: unit_code → (name, state, type, annual_base,
+# Top-30 most-visited parks: unit_code → (name, state, type, annual_base,
 # monthly_distribution_fractions[12])
 #
 # The monthly fractions sum to 1.0 and are calibrated from published NPS stats
@@ -347,6 +347,57 @@ SEED_PARKS: dict[str, tuple[str, str, str, int, list[float]]] = {
         "Congaree National Park", "SC", "National Park", 145_929,
         [0.0800, 0.0800, 0.1000, 0.1050, 0.1000, 0.0750, 0.0650, 0.0650, 0.0800, 0.0950, 0.0800, 0.0750],
     ),
+    # ── parks 21-30 ────────────────────────────────────────────────────────────
+    "DEVA": (
+        "Death Valley National Park", "CA,NV", "National Park", 1_134_021,
+        # Desert park: winter/spring peak, hostile summer
+        [0.1200, 0.1200, 0.1300, 0.1100, 0.0800, 0.0350, 0.0200, 0.0200, 0.0500, 0.1000, 0.1050, 0.1100],
+    ),
+    "SEQU": (
+        "Sequoia National Park", "CA", "National Park", 1_229_594,
+        # Summer-heavy, similar to Yosemite but slightly more winter access
+        [0.0300, 0.0350, 0.0750, 0.1100, 0.1250, 0.1400, 0.1650, 0.1500, 0.0900, 0.0550, 0.0150, 0.0100],
+    ),
+    "HAVO": (
+        "Hawaii Volcanoes National Park", "HI", "National Park", 1_152_688,
+        # Year-round access; slight peaks Jan-Mar (dry season) and summer
+        [0.0850, 0.0900, 0.0950, 0.0850, 0.0800, 0.0750, 0.0850, 0.0900, 0.0800, 0.0800, 0.0750, 0.0800],
+    ),
+    "BADL": (
+        "Badlands National Park", "SD", "National Park", 1_036_988,
+        # Strong summer peak, very quiet winter
+        [0.0050, 0.0050, 0.0150, 0.0400, 0.0900, 0.1400, 0.2200, 0.2200, 0.1400, 0.0800, 0.0300, 0.0150],
+    ),
+    "EVER": (
+        "Everglades National Park", "FL", "National Park", 1_002_539,
+        # Winter/spring peak (dry season Nov-Apr); summer is rainy and slow
+        [0.1200, 0.1200, 0.1200, 0.1000, 0.0800, 0.0500, 0.0500, 0.0500, 0.0600, 0.0850, 0.0600, 0.1050],
+    ),
+    "MEVE": (
+        "Mesa Verde National Park", "CO", "National Park", 693_000,
+        # Summer-dominant; facilities largely closed Nov-Apr
+        [0.0100, 0.0100, 0.0300, 0.0850, 0.1250, 0.1650, 0.2150, 0.2000, 0.1050, 0.0400, 0.0100, 0.0050],
+    ),
+    "KICA": (
+        "Kings Canyon National Park", "CA", "National Park", 699_066,
+        # Summer peak; higher elevation keeps spring/fall low
+        [0.0100, 0.0150, 0.0450, 0.0800, 0.1350, 0.1800, 0.2200, 0.1800, 0.0850, 0.0350, 0.0100, 0.0050],
+    ),
+    "PEFO": (
+        "Petrified Forest National Park", "AZ", "National Park", 644_922,
+        # Spring and fall shoulder peaks; summer hot but still visited
+        [0.0400, 0.0500, 0.0950, 0.1300, 0.1200, 0.1000, 0.1050, 0.1100, 0.1150, 0.0950, 0.0200, 0.0200],
+    ),
+    "CANY": (
+        "Canyonlands National Park", "UT", "National Park", 776_218,
+        # Spring/fall peaks; summer hot, winter very quiet
+        [0.0350, 0.0500, 0.1000, 0.1400, 0.1400, 0.1100, 0.1000, 0.1000, 0.1100, 0.1000, 0.0100, 0.0050],
+    ),
+    "CHIS": (
+        "Channel Islands National Park", "CA", "National Park", 351_527,
+        # Year-round with slight summer peak; boat access limits extremes
+        [0.0800, 0.0800, 0.0900, 0.0950, 0.1100, 0.1000, 0.1100, 0.1000, 0.0900, 0.0850, 0.0350, 0.0250],
+    ),
 }
 
 # Year-on-year scaling factors relative to 2019 base
@@ -424,7 +475,7 @@ def run_pipeline(
     log.info("Database initialised at %s", db_path)
 
     if seed_only:
-        log.info("Seed-only mode: loading built-in data for top-20 parks")
+        log.info("Seed-only mode: loading built-in data for top-%d parks", len(SEED_PARKS))
         _load_seed(years, db_path)
         return
 

@@ -299,7 +299,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("**Filters**")
-    state_filter = st.text_input("Filter by state code (e.g. CA, TX)", "")
+    state_filter = st.text_input("Filter by state code (e.g. CA  or  CA,TX)", "")
     desig_filter = st.text_input("Filter by designation (e.g. National Park)", "")
 
     st.markdown("---")
@@ -332,7 +332,14 @@ if parks_df.empty:
 # Apply sidebar filters
 filtered = parks_df.copy()
 if state_filter.strip():
-    filtered = filtered[filtered["states"].str.contains(state_filter.strip().upper(), na=False)]
+    # Split the input on commas, trim whitespace, uppercase each code, then
+    # keep only parks whose states field (also comma-separated) contains at
+    # least one of the requested codes as an exact match.
+    wanted_states = {s.strip().upper() for s in state_filter.split(",") if s.strip()}
+    def _park_has_state(states_str: str) -> bool:
+        park_states = {s.strip().upper() for s in str(states_str).split(",") if s.strip()}
+        return bool(wanted_states & park_states)
+    filtered = filtered[filtered["states"].apply(_park_has_state)]
 if desig_filter.strip():
     filtered = filtered[filtered["designation"].str.contains(desig_filter.strip(), case=False, na=False)]
 
