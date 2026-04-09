@@ -18,26 +18,23 @@ nps-seasonal-model/
 │   └── api.py        # FastAPI backend
 ├── tests/
 │   └── test_model.py
-├── nps_app.py        # Streamlit dashboard (primary UI)
 └── requirements.txt
 ```
 
 ## Quick start
 
 ```bash
-cd nps-seasonal-model
-
-# Install dependencies
+# Install dependencies (from repo root)
 pip install -r requirements.txt
 
 # Load data (uses built-in seed for top-20 parks — no network needed)
-python src/ingest.py --years 2014-2024 --seed-only
+python nps-seasonal-model/src/ingest.py --years 2014-2024 --seed-only
 
-# Launch Streamlit dashboard
-streamlit run nps_app.py
+# Launch unified Streamlit dashboard (tabs 4–6 use this seasonal model)
+streamlit run nps_dashboard.py
 
 # (Optional) Launch FastAPI backend
-uvicorn src.api:app --reload --port 8000
+cd nps-seasonal-model && uvicorn src.api:app --reload --port 8000
 ```
 
 ## Ingest pipeline
