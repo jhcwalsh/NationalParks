@@ -4,6 +4,20 @@ import requests
 import plotly.express as px
 import plotly.graph_objects as go
 from typing import Optional
+import sys
+from pathlib import Path
+
+# ── Seasonal model imports ────────────────────────────────────────────────────
+_SEASONAL_SRC = Path(__file__).parent / "nps-seasonal-model" / "src"
+if str(_SEASONAL_SRC) not in sys.path:
+    sys.path.insert(0, str(_SEASONAL_SRC))
+
+try:
+    import db as _nps_db
+    import model as _nps_model
+    _SEASONAL_AVAILABLE = True
+except ImportError:
+    _SEASONAL_AVAILABLE = False
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -100,6 +114,27 @@ st.markdown("""
     /* Hide Streamlit branding */
     #MainMenu { visibility: hidden; }
     footer { visibility: hidden; }
+
+    /* Seasonal tab extras */
+    .badge-peak     { display:inline-block; background:#c0392b; color:#fff;
+                      font-size:11px; padding:3px 10px; border-radius:12px; margin:2px 3px; }
+    .badge-shoulder { display:inline-block; background:#e67e22; color:#fff;
+                      font-size:11px; padding:3px 10px; border-radius:12px; margin:2px 3px; }
+    .badge-quiet    { display:inline-block; background:#27ae60; color:#fff;
+                      font-size:11px; padding:3px 10px; border-radius:12px; margin:2px 3px; }
+    .metric-card .sub {
+        font-size: 12px; color: #7a9bbb; margin-top: 2px;
+    }
+    .window-card {
+        background: #0f1923;
+        border: 1px solid #1e3448;
+        border-left: 4px solid #27ae60;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+    }
+    .window-card .wlabel { font-weight:600; color:#e8edf2; font-size:14px; }
+    .window-card .wnotes { color:#7a9bbb; font-size:12px; margin-top:4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -322,7 +357,7 @@ for col, label, value in [
         </div>""", unsafe_allow_html=True)
 
 # ── Tab layout ─────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["📋 Parks Overview", "📊 Busyness Rankings", "🔍 Park Detail"])
+tab1, tab2, tab3, tab4 = st.tabs(["📋 Parks Overview", "📊 Busyness Rankings", "🔍 Park Detail", "📅 Seasonal Busyness"])
 
 # ────────────────────────────────────────────────────────────────────────────────
 # TAB 1 — Parks Overview
@@ -548,3 +583,179 @@ with tab3:
                         <strong>[{category}] {title}</strong><br>
                         <small>{description}</small>
                     </div>""", unsafe_allow_html=True)
+
+
+# ────────────────────────────────────────────────────────────────────────────────
+# TAB 4 — Seasonal Busyness
+# ────────────────────────────────────────────────────────────────────────────────
+
+_MONTH_NAMES_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+_PLOTLY_BG = dict(paper_bgcolor="#0f1923", plot_bgcolor="#0f1923",
+                  font=dict(color="#e8edf2"), margin=dict(l=10,r=10,t=30,b=10))
+
+
+def _score_color(score: float) -> str:
+    if score >= 70: return "#c0392b"
+    if score >= 50: return "#e67e22"
+    if score >= 20: return "#f39c12"
+    return "#27ae60"
+
+
+def _seasonal_bar_chart(model_dict: dict) -> go.Figure:
+    scores = model_dict["monthly_scores"]
+    fig = go.Figure(go.Bar(
+        x=[s["month_name"][:3] for s in scores],
+        y=[s["score"] for s in scores],
+        marker_color=[_score_color(s["score"]) for s in scores],
+        text=[f"{s['score']:.0f}" for s in scores],
+        textposition="outside",
+        textfont=dict(color="#e8edf2", size=10),
+        hovertemplate=(
+            "<b>%{x}</b><br>Score: %{y:.1f}<br>"
+            "Avg visits: %{customdata:,}<extra></extra>"
+        ),
+        customdata=[s["avg_visits"] for s in scores],
+    ))
+    fig.update_layout(
+        **_PLOTLY_BG,
+        yaxis=dict(range=[0, 115], gridcolor="#1e3448",
+                   title="Busyness Score (0–100)",
+                   title_font=dict(color="#7a9bbb"),
+                   tickfont=dict(color="#7a9bbb")),
+        xaxis=dict(tickfont=dict(color="#7a9bbb")),
+        showlegend=False, height=300,
+    )
+    fig.add_hline(y=70, line_dash="dot", line_color="#c0392b", opacity=0.4,
+                  annotation_text="Peak", annotation_font_color="#c0392b",
+                  annotation_position="top right")
+    fig.add_hline(y=30, line_dash="dot", line_color="#27ae60", opacity=0.4,
+                  annotation_text="Quiet", annotation_font_color="#27ae60",
+                  annotation_position="bottom right")
+    return fig
+
+
+with tab4:
+    st.markdown('<div class="section-header">Seasonal Busyness Model</div>', unsafe_allow_html=True)
+
+    if not _SEASONAL_AVAILABLE:
+        st.error(
+            "Seasonal model modules not found. Ensure `nps-seasonal-model/src/` "
+            "exists and run:\n\n"
+            "```\npython nps-seasonal-model/src/ingest.py --years 2014-2024 --seed-only\n```"
+        )
+    else:
+        # Park selector — mirrors the Tab 3 picker so the two tabs feel linked
+        s_park_names = sorted(parks_df["name"].dropna().unique().tolist())
+        s_selected_name = st.selectbox(
+            "Select a park", s_park_names, index=0, key="seasonal_select"
+        )
+
+        s_park_row = parks_df[parks_df["name"] == s_selected_name]
+        if s_park_row.empty:
+            st.warning("Park not found.")
+        else:
+            unit_code = s_park_row.iloc[0]["park_code"].upper()
+
+            with st.spinner(f"Building seasonal model for {unit_code}…"):
+                s_model = _nps_model.build_busyness_model(unit_code)
+
+            if s_model is None:
+                st.info(
+                    f"No seasonal data found for **{unit_code}**. "
+                    "The built-in dataset covers the 20 most-visited parks. "
+                    "To add more parks run:\n\n"
+                    f"```\npython nps-seasonal-model/src/ingest.py --years 2014-2024 --park {unit_code}\n```"
+                )
+            else:
+                d = s_model.to_dict()
+                peak_score  = max(ms["score"] for ms in d["monthly_scores"])
+                quiet_score = min(ms["score"] for ms in d["monthly_scores"])
+                peak_month_str = ", ".join(
+                    _MONTH_NAMES_SHORT[m - 1] for m in d["peak_months"]
+                )
+                quiet_month_str = ", ".join(
+                    _MONTH_NAMES_SHORT[m - 1] for m in d["quiet_months"][:4]
+                )
+                data_span = f"{min(d['data_years'])}–{max(d['data_years'])}"
+
+                # ── Top metrics ────────────────────────────────────────────
+                mc1, mc2, mc3, mc4 = st.columns(4)
+                for col, label, value, sub in [
+                    (mc1, "Unit Code",   unit_code,           d["name"][:30]),
+                    (mc2, "Peak Score",  f"{peak_score:.0f}/100",  f"Months: {peak_month_str}"),
+                    (mc3, "Quiet Score", f"{quiet_score:.0f}/100", f"Months: {quiet_month_str}"),
+                    (mc4, "YoY Trend",   d["yoy_trend"],      f"Data: {data_span}"),
+                ]:
+                    with col:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div class="label">{label}</div>
+                            <div class="value">{value}</div>
+                            <div class="sub">{sub}</div>
+                        </div>""", unsafe_allow_html=True)
+
+                # ── Monthly bar chart ──────────────────────────────────────
+                st.markdown('<div class="section-header">Monthly Busyness Scores</div>',
+                            unsafe_allow_html=True)
+                st.plotly_chart(_seasonal_bar_chart(d), use_container_width=True)
+
+                # ── Peak / Shoulder / Quiet badges ─────────────────────────
+                st.markdown('<div class="section-header">Seasonal Classification</div>',
+                            unsafe_allow_html=True)
+                bc1, bc2, bc3 = st.columns(3)
+                with bc1:
+                    st.markdown("**Peak months** *(score ≥ 70)*")
+                    html = " ".join(
+                        f'<span class="badge-peak">{_MONTH_NAMES_SHORT[m-1]}</span>'
+                        for m in d["peak_months"]
+                    ) or "<em style='color:#7a9bbb'>none</em>"
+                    st.markdown(html, unsafe_allow_html=True)
+                with bc2:
+                    st.markdown("**Shoulder months** *(score 20–70)*")
+                    html = " ".join(
+                        f'<span class="badge-shoulder">{_MONTH_NAMES_SHORT[m-1]}</span>'
+                        for m in d["shoulder_months"]
+                    ) or "<em style='color:#7a9bbb'>none</em>"
+                    st.markdown(html, unsafe_allow_html=True)
+                with bc3:
+                    st.markdown("**Quiet months** *(score < 30)*")
+                    html = " ".join(
+                        f'<span class="badge-quiet">{_MONTH_NAMES_SHORT[m-1]}</span>'
+                        for m in d["quiet_months"]
+                    ) or "<em style='color:#7a9bbb'>none</em>"
+                    st.markdown(html, unsafe_allow_html=True)
+
+                # ── Best visit windows ─────────────────────────────────────
+                if d["best_visit_windows"]:
+                    st.markdown('<div class="section-header">Best Visit Windows</div>',
+                                unsafe_allow_html=True)
+                    st.caption(
+                        "Ranked 2-week windows with lowest expected busyness, "
+                        "weather-hostile periods excluded."
+                    )
+                    for w in d["best_visit_windows"]:
+                        color = _score_color(w["score"])
+                        st.markdown(f"""
+                        <div class="window-card">
+                            <div class="wlabel">
+                                {w['label']}
+                                <span style="color:{color}; font-size:13px; margin-left:8px;">
+                                    Score: {w['score']:.0f}/100
+                                </span>
+                            </div>
+                            <div class="wnotes">{w['notes']}</div>
+                        </div>""", unsafe_allow_html=True)
+
+                # ── Data quality footer ────────────────────────────────────
+                st.markdown("---")
+                if d["low_confidence"]:
+                    st.warning(
+                        f"Low confidence: only {len(d['data_years'])} years of data. "
+                        "Scores may not reflect long-term patterns."
+                    )
+                excluded_str = ", ".join(str(y) for y in d["excluded_years"])
+                st.caption(
+                    f"Baseline excludes COVID years ({excluded_str}). "
+                    f"Weekend multiplier: {d['weekend_multiplier']}× (estimated). "
+                    f"Data: NPS IRMA / seed dataset."
+                )
