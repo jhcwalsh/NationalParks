@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: nps-dashboard
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python nps-seasonal-model/src/ingest.py --seed-only
+    startCommand: streamlit run nps_dashboard.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: NPS_API_KEY
+        sync: false
