@@ -1,0 +1,42 @@
+# NPS project .gitignore
+
+# Generated data files
+data/raw/
+data/nps.db
+nps-seasonal-model/data/raw/
+nps-seasonal-model/data/nps.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
