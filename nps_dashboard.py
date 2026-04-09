@@ -15,11 +15,15 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+import os
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
 import streamlit as st
+
+_ENV_KEY = os.getenv("NPS_API_KEY", "")
 
 # ── Seasonal model imports ────────────────────────────────────────────────────
 _SEASONAL_SRC = Path(__file__).parent / "nps-seasonal-model" / "src"
@@ -423,10 +427,10 @@ with st.sidebar:
 
     # ── NPS API key ────────────────────────────────────────────────────────────
     if "api_key" not in st.session_state:
-        st.session_state.api_key = ""
+        st.session_state.api_key = _ENV_KEY
     api_key_input = st.text_input(
         "NPS API Key",
-        value=st.session_state.api_key,
+        value=_ENV_KEY or st.session_state.api_key,
         type="password",
         placeholder="Enter your api.nps.gov key",
         help="Get a free key at https://www.nps.gov/subjects/developer/get-started.htm",

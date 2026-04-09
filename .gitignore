@@ -22,6 +22,8 @@ build/
 .venv/
 venv/
 env/
+
+# Secrets — never commit real keys
 .env
 
 # IDE
