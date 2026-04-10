@@ -12,6 +12,7 @@ Run
 from __future__ import annotations
 
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Optional
 
@@ -23,7 +24,8 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 
-_ENV_KEY = os.getenv("NPS_API_KEY", "")
+_ENV_KEY      = os.getenv("NPS_API_KEY",  "")
+_ENV_RIDB_KEY = os.getenv("RIDB_API_KEY", "")
 
 # ── Seasonal model imports ────────────────────────────────────────────────────
 _SEASONAL_SRC = Path(__file__).parent / "nps-seasonal-model" / "src"
@@ -36,6 +38,12 @@ try:
     _SEASONAL_AVAILABLE = True
 except ImportError:
     _SEASONAL_AVAILABLE = False
+
+try:
+    import campsites as _nps_campsites
+    _CAMPSITES_AVAILABLE = True
+except ImportError:
+    _CAMPSITES_AVAILABLE = False
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -335,6 +343,65 @@ def score_color(score: float) -> str:
     return "#27ae60"
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Campsite availability helpers  (tab 7)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def load_park_facility_map(ridb_api_key: str) -> tuple[dict, dict]:
+    """Fetch NPS campground facility IDs from RIDB (cached 24 h)."""
+    if not _CAMPSITES_AVAILABLE or not ridb_api_key:
+        return {}, {}
+    return _nps_campsites.build_park_facility_map(ridb_api_key)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_campsite_availability(
+    ridb_api_key: str,
+    window_start_str: str,
+    window_days: int,
+    db_path_str: str,
+) -> pd.DataFrame:
+    """
+    Return campsite availability DataFrame (cached 1 h).
+    Tries the SQLite snapshot cache first; falls back to live RIDB + Rec.gov calls.
+    """
+    if not _CAMPSITES_AVAILABLE or not ridb_api_key:
+        return pd.DataFrame()
+
+    db_path = Path(db_path_str)
+    cached = _nps_campsites.get_cached_stats(
+        db_path, window_start_str=window_start_str, max_age_seconds=3600
+    )
+    if cached is not None and not cached.empty:
+        return cached
+
+    park_map, fac_names = _nps_campsites.build_park_facility_map(ridb_api_key)
+    if not park_map:
+        return pd.DataFrame()
+
+    df = _nps_campsites.fetch_all_parks_stats(
+        park_map,
+        fac_names,
+        window_start=date.fromisoformat(window_start_str),
+        window_days=window_days,
+    )
+    if not df.empty:
+        _nps_campsites.save_stats_to_db(df, db_path)
+    return df
+
+
+def _avail_color(pct: float | None) -> str:
+    """Colour tier for availability percentage."""
+    if pct is None:
+        return "#4a6680"
+    if pct >= 50:
+        return "#27ae60"
+    if pct >= 20:
+        return "#f39c12"
+    return "#c0392b"
+
+
 def badge(text: str, kind: str = "info") -> str:
     return f'<span class="badge-{kind}">{text}</span>'
 
@@ -501,6 +568,22 @@ with st.sidebar:
             )
             selected_uc = park_options[selected_label]
 
+    # ── Recreation.gov API key (tab 7) ────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("**Recreation.gov**")
+    if "ridb_api_key" not in st.session_state:
+        st.session_state.ridb_api_key = _ENV_RIDB_KEY
+    ridb_key_input = st.text_input(
+        "RIDB API Key",
+        value=_ENV_RIDB_KEY or st.session_state.ridb_api_key,
+        type="password",
+        placeholder="Get free key at ridb.recreation.gov",
+        help="Required for Tab 7 — Campsite Availability",
+        key="ridb_key_widget",
+    )
+    if ridb_key_input:
+        st.session_state.ridb_api_key = ridb_key_input
+
     st.markdown("---")
     st.caption("NPS API data refreshes every 10 min · Alerts every 5 min.")
     if not seasonal_parks_df.empty:
@@ -519,7 +602,8 @@ api_key = st.session_state.get("api_key", "")
 st.markdown("# 🏕️ NPS Park Dashboard")
 st.markdown(
     "Live park data via the **NPS Developer API** (tabs 1–3)  ·  "
-    "Historical seasonal busyness model (tabs 4–6)"
+    "Historical seasonal busyness model (tabs 4–6)  ·  "
+    "Campsite availability via Recreation.gov (tab 7)"
 )
 
 # ── Load NPS API data ──────────────────────────────────────────────────────────
@@ -581,13 +665,14 @@ elif not api_key:
 # Tabs
 # ══════════════════════════════════════════════════════════════════════════════
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📋 Parks Overview",
     "📊 Busyness Rankings",
     "🔍 Park Detail",
     "📊 Park Busyness",
     "⚖️ Compare Parks",
     "💡 Recommendations",
+    "⛺ Campsite Availability",
 ])
 
 _NO_API = "Enter your NPS API key in the sidebar to load this tab."
@@ -1131,3 +1216,238 @@ with tab6:
                             <div class="wlabel">{w['label']} — Score: {w['score']:.0f}/100</div>
                             <div class="wnotes">{w['notes']}</div>
                         </div>""", unsafe_allow_html=True)
+
+
+# ────────────────────────────────────────────────────────────────────────────────
+# TAB 7 — Campsite Availability  (Recreation.gov)
+# ────────────────────────────────────────────────────────────────────────────────
+with tab7:
+    st.markdown('<div class="section-header">Campsite Availability — Next 30 Days</div>',
+                unsafe_allow_html=True)
+
+    if not _CAMPSITES_AVAILABLE:
+        st.error(
+            "Campsite module unavailable.  "
+            "Ensure `campsites.py` is present in `nps-seasonal-model/src/`."
+        )
+        st.stop()
+
+    ridb_key = st.session_state.get("ridb_api_key", "")
+    if not ridb_key:
+        st.info(
+            "**Enter your Recreation.gov (RIDB) API key in the sidebar** to load "
+            "campsite availability data for all 63 national parks.  \n\n"
+            "Get a free key at [ridb.recreation.gov](https://ridb.recreation.gov).  \n\n"
+            "The key is used only to discover which campgrounds exist at each park "
+            "(RIDB metadata API).  Availability data is fetched from the public "
+            "Recreation.gov availability endpoint without authentication."
+        )
+    else:
+        # ── Controls ──────────────────────────────────────────────────────────
+        col_d, col_n, col_btn = st.columns([2, 1, 1])
+        with col_d:
+            t7_start = st.date_input(
+                "Window start", value=date.today(),
+                min_value=date.today(), key="t7_start",
+            )
+        with col_n:
+            t7_days = st.selectbox("Days ahead", [7, 14, 30], index=2, key="t7_days")
+        with col_btn:
+            st.markdown("&nbsp;", unsafe_allow_html=True)
+            if st.button("Refresh", key="t7_refresh"):
+                load_campsite_availability.clear()
+                load_park_facility_map.clear()
+
+        # ── Load data ─────────────────────────────────────────────────────────
+        with st.spinner(
+            "Fetching campsite availability for 63 national parks…  "
+            "First load may take 1–2 minutes."
+        ):
+            camp_df = load_campsite_availability(
+                ridb_key,
+                t7_start.isoformat(),
+                t7_days,
+                str(DB_PATH),
+            )
+
+        if camp_df.empty:
+            st.warning(
+                "No campsite data returned.  "
+                "Check your RIDB API key and try refreshing."
+            )
+        else:
+            # ── Summary metrics ───────────────────────────────────────────────
+            parks_with_camps = camp_df[camp_df["has_campgrounds"].astype(bool)]
+            total_reservable = int(parks_with_camps["n_reservable_sites"].sum())
+            total_fcfs       = int(parks_with_camps["n_fcfs_sites"].sum())
+            total_avail      = int(parks_with_camps["avail_nights"].sum())
+            avg_pct          = parks_with_camps["pct_available"].dropna().mean()
+            fetched_ts       = camp_df["fetched_at"].max() if "fetched_at" in camp_df.columns else "—"
+
+            mc1, mc2, mc3, mc4 = st.columns(4)
+            for col, label, value, sub in [
+                (mc1, "Total Reservable Sites",   f"{total_reservable:,}",
+                 "across all 63 parks"),
+                (mc2, "Total FCFS Sites",         f"{total_fcfs:,}",
+                 "first-come-first-served"),
+                (mc3, f"Available Site-Nights ({t7_days}d)", f"{total_avail:,}",
+                 "reservable slots open"),
+                (mc4, "Avg % Available",
+                 f"{avg_pct:.1f}%" if not pd.isna(avg_pct) else "—",
+                 "parks with campgrounds"),
+            ]:
+                with col:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <div class="label">{label}</div>
+                        <div class="value">{value}</div>
+                        <div class="sub">{sub}</div>
+                    </div>""", unsafe_allow_html=True)
+
+            # ── Availability bar chart ────────────────────────────────────────
+            st.markdown('<div class="section-header">Availability by Park</div>',
+                        unsafe_allow_html=True)
+
+            chart_df = parks_with_camps.copy()
+            chart_df["pct_display"] = chart_df["pct_available"].fillna(0)
+            chart_df["color"] = chart_df["pct_available"].apply(_avail_color)
+            chart_df = chart_df.sort_values("pct_display", ascending=True)
+
+            fig_avail = px.bar(
+                chart_df,
+                x="pct_display",
+                y="park_name",
+                orientation="h",
+                color="pct_display",
+                color_continuous_scale=[
+                    [0.0, "#c0392b"],
+                    [0.2, "#f39c12"],
+                    [0.5, "#27ae60"],
+                    [1.0, "#1abc9c"],
+                ],
+                range_color=[0, 100],
+                labels={"pct_display": "% Available", "park_name": "Park"},
+                template="plotly_dark",
+            )
+            fig_avail.update_layout(
+                **PLOTLY_LAYOUT,
+                height=max(400, len(chart_df) * 20 + 80),
+                xaxis=dict(range=[0, 100], title="% Available",
+                           ticksuffix="%", gridcolor="#1e3448",
+                           tickfont=dict(color="#7a9bbb")),
+                yaxis=dict(tickfont=dict(color="#7a9bbb"), title=""),
+                coloraxis_showscale=False,
+            )
+            st.plotly_chart(fig_avail, use_container_width=True)
+
+            # ── Data table ────────────────────────────────────────────────────
+            st.markdown('<div class="section-header">Park Breakdown</div>',
+                        unsafe_allow_html=True)
+
+            display_df = camp_df[
+                ["park_name", "n_reservable_sites", "n_fcfs_sites",
+                 "avail_nights", "pct_available", "weekend_pct", "weekday_pct",
+                 "has_campgrounds", "n_facilities"]
+            ].copy()
+
+            def fmt_pct(v):
+                return f"{v:.1f}%" if pd.notna(v) else "—"
+
+            display_df["pct_available"] = display_df["pct_available"].apply(fmt_pct)
+            display_df["weekend_pct"]   = display_df["weekend_pct"].apply(fmt_pct)
+            display_df["weekday_pct"]   = display_df["weekday_pct"].apply(fmt_pct)
+            display_df["has_campgrounds"] = display_df["has_campgrounds"].map(
+                {True: "Yes", False: "No"}
+            )
+
+            st.dataframe(
+                display_df.rename(columns={
+                    "park_name":          "Park",
+                    "n_reservable_sites": "Reservable Sites",
+                    "n_fcfs_sites":       "FCFS Sites",
+                    "avail_nights":       f"Avail Nights ({t7_days}d)",
+                    "pct_available":      "% Available",
+                    "weekend_pct":        "Wknd %",
+                    "weekday_pct":        "Wkday %",
+                    "has_campgrounds":    "On Rec.gov",
+                    "n_facilities":       "Campgrounds",
+                }),
+                use_container_width=True,
+                hide_index=True,
+                height=420,
+            )
+
+            # ── Parks not on Recreation.gov ───────────────────────────────────
+            no_camp = camp_df[~camp_df["has_campgrounds"].astype(bool)]
+            if not no_camp.empty:
+                with st.expander(
+                    f"{len(no_camp)} parks with no Recreation.gov campgrounds"
+                ):
+                    st.markdown(
+                        "These parks either have no reservable camping, use a "
+                        "different booking system (lottery, permit, walk-in), or "
+                        "were not matched in the RIDB facility discovery.  "
+                        "Check the park's website for current camping options."
+                    )
+                    st.dataframe(
+                        no_camp[["park_name"]].rename(columns={"park_name": "Park"}),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+            # ── Per-campground drill-down ─────────────────────────────────────
+            st.markdown("---")
+            st.markdown("**Per-campground detail**")
+            drill_options = {
+                row["park_name"]: row["unit_code"]
+                for _, row in parks_with_camps.sort_values("park_name").iterrows()
+            }
+            if drill_options:
+                drill_label = st.selectbox(
+                    "Select park", list(drill_options.keys()), key="t7_drill"
+                )
+                drill_uc = drill_options[drill_label]
+                if st.button("Load campground detail →", key="t7_drill_btn"):
+                    fac_map, fac_names = load_park_facility_map(ridb_key)
+                    fac_ids = fac_map.get(drill_uc, [])
+                    if not fac_ids:
+                        st.info("No facility IDs found for this park.")
+                    else:
+                        with st.spinner(f"Fetching per-campground data for {drill_label}…"):
+                            ps = _nps_campsites.fetch_park_campsite_stats(
+                                drill_uc, fac_ids, fac_names,
+                                window_start=t7_start, window_days=t7_days,
+                            )
+                        fac_rows = []
+                        for f in ps.facilities:
+                            tot = f.total_reservable_nights
+                            pct = round(100 * f.available_nights / tot, 1) if tot else None
+                            fac_rows.append({
+                                "Campground":      f.facility_name,
+                                "Reservable Sites": f.n_reservable,
+                                "FCFS Sites":       f.n_fcfs,
+                                "Avail Nights":     f.available_nights,
+                                "% Available":      f"{pct:.1f}%" if pct is not None else "—",
+                                "Wknd %": (
+                                    f"{100*f.weekend_available/f.weekend_total:.1f}%"
+                                    if f.weekend_total else "—"
+                                ),
+                                "Wkday %": (
+                                    f"{100*f.weekday_available/f.weekday_total:.1f}%"
+                                    if f.weekday_total else "—"
+                                ),
+                            })
+                        st.dataframe(
+                            pd.DataFrame(fac_rows),
+                            use_container_width=True, hide_index=True,
+                        )
+
+            # ── Footer ────────────────────────────────────────────────────────
+            st.markdown("---")
+            st.caption(
+                f"Data fetched: {fetched_ts[:19] if fetched_ts else '—'} UTC  ·  "
+                f"Window: {t7_start} + {t7_days} days  ·  "
+                "Cache refreshes every hour  ·  "
+                "Source: [Recreation.gov](https://www.recreation.gov) / "
+                "[RIDB](https://ridb.recreation.gov)"
+            )
