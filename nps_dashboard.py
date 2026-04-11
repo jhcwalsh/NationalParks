@@ -803,7 +803,16 @@ with tab3:
     else:
         st.markdown('<div class="section-header">Park Detail View</div>', unsafe_allow_html=True)
 
-        park_names   = sorted(parks_df["name"].dropna().unique().tolist())
+        _np_codes = (
+            {c.lower() for c in _nps_campsites.NATIONAL_PARKS}
+            if _CAMPSITES_AVAILABLE else set()
+        )
+        _detail_df = (
+            parks_df[parks_df["park_code"].str.lower().isin(_np_codes)]
+            if _np_codes else
+            parks_df[parks_df["designation"].str.contains("National Park", case=False, na=False)]
+        )
+        park_names    = sorted(_detail_df["name"].dropna().unique().tolist())
         selected_name = st.selectbox("Select a park", park_names, index=0, key="detail_select")
         park_row      = parks_df[parks_df["name"] == selected_name]
 
