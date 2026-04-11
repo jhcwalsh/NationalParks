@@ -1356,8 +1356,6 @@ with tab7:
         st.stop()
 
     # ── Merge NPS API campground counts (FCFS) ────────────────────────────────
-    # NPS Developer API /campgrounds has numberOfSitesFirstComeFirstServe.
-    # Only available when an NPS API key is present.
     nps_cg_df = load_nps_campgrounds(api_key) if api_key else pd.DataFrame()
     if not nps_cg_df.empty:
         camp_df = camp_df.merge(nps_cg_df[["unit_code", "nps_fcfs_sites"]],
@@ -1365,6 +1363,14 @@ with tab7:
         camp_df["nps_fcfs_sites"] = camp_df["nps_fcfs_sites"].fillna(0).astype(int)
     else:
         camp_df["nps_fcfs_sites"] = 0
+
+    # ── Park filter dropdown ──────────────────────────────────────────────────
+    park_options = ["All Parks"] + sorted(
+        camp_df["park_name"].dropna().unique().tolist()
+    )
+    selected_park = st.selectbox("Filter by park", park_options, index=0, key="t7_park_filter")
+    if selected_park != "All Parks":
+        camp_df = camp_df[camp_df["park_name"] == selected_park]
 
     # ── Summary metrics ───────────────────────────────────────────────────────
     parks_with_camps = camp_df[camp_df["has_campgrounds"].astype(bool)]
