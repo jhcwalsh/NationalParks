@@ -719,6 +719,12 @@ elif not api_key:
     )
 
 
+# ── National park code set (used by tabs 1 & 3) ──────────────────────────────
+_np_codes = (
+    {c.lower() for c in _nps_campsites.NATIONAL_PARKS}
+    if _CAMPSITES_AVAILABLE else set()
+)
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Tabs
 # ══════════════════════════════════════════════════════════════════════════════
@@ -743,10 +749,22 @@ with tab1:
     if parks_df.empty:
         st.info(_NO_API)
     else:
-        st.markdown('<div class="section-header">All Parks</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">National Parks</div>', unsafe_allow_html=True)
+
+        # Restrict to the 63 designated national parks, then apply state filter
+        np_df = (
+            parks_df[parks_df["park_code"].str.lower().isin(_np_codes)]
+            if _np_codes else
+            parks_df[parks_df["designation"].str.contains("National Park", case=False, na=False)]
+        )
+        if state_filter.strip() and not np_df.empty:
+            wanted = {s.strip().upper() for s in state_filter.split(",") if s.strip()}
+            np_df = np_df[np_df["states"].apply(
+                lambda s: bool(wanted & {x.strip().upper() for x in str(s).split(",")})
+            )]
 
         search = st.text_input("Search park name", "", key="search_overview")
-        display = filtered.copy()
+        display = np_df.copy()
         if search.strip():
             display = display[display["name"].str.contains(search.strip(), case=False, na=False)]
 
@@ -755,28 +773,6 @@ with tab1:
             "amenities": "Amenities", "url": "URL",
         })
         st.dataframe(show_df, use_container_width=True, hide_index=True, height=420)
-
-        st.markdown('<div class="section-header">Parks by Designation</div>', unsafe_allow_html=True)
-        desig_counts = (
-            filtered["designation"].value_counts()
-            .reset_index()
-            .rename(columns={"designation": "Designation", "count": "Count"})
-            .head(20)
-        )
-        fig_desig = px.bar(
-            desig_counts, x="Count", y="Designation", orientation="h",
-            color="Count",
-            color_continuous_scale=[[0,"#1a3a52"],[0.5,"#1a6fa8"],[1,"#4da6de"]],
-            template="plotly_dark",
-        )
-        fig_desig.update_layout(
-            paper_bgcolor="#0f1923", plot_bgcolor="#0f1923",
-            margin=dict(l=0, r=0, t=10, b=0),
-            coloraxis_showscale=False,
-            yaxis=dict(autorange="reversed"),
-            height=480,
-        )
-        st.plotly_chart(fig_desig, use_container_width=True)
 
         st.markdown('<div class="section-header">Park Locations</div>', unsafe_allow_html=True)
         map_df = parks_df.dropna(subset=["lat","lon"])
@@ -861,10 +857,6 @@ with tab3:
     else:
         st.markdown('<div class="section-header">Park Detail View</div>', unsafe_allow_html=True)
 
-        _np_codes = (
-            {c.lower() for c in _nps_campsites.NATIONAL_PARKS}
-            if _CAMPSITES_AVAILABLE else set()
-        )
         _detail_df = (
             parks_df[parks_df["park_code"].str.lower().isin(_np_codes)]
             if _np_codes else
