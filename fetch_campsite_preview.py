@@ -107,7 +107,6 @@ for idx, unit_code in enumerate(remaining, start=len(done) + 1):
                 "unit_code":          unit_code,
                 "park_name":          park_name,
                 "n_reservable_sites": ps.n_reservable_sites,
-                "n_fcfs_sites":       ps.n_fcfs_sites,
                 "avail_nights":       ps.avail_nights,
                 "total_nights":       ps.total_nights,
                 "pct_available":      ps.pct_available,
@@ -129,7 +128,7 @@ for idx, unit_code in enumerate(remaining, start=len(done) + 1):
             rows.append({
                 "unit_code": unit_code, "park_name": park_name,
                 "has_campgrounds": True, "n_facilities": len(facility_ids),
-                "n_reservable_sites": 0, "n_fcfs_sites": 0,
+                "n_reservable_sites": 0,
                 "avail_nights": 0, "total_nights": 0,
                 "pct_available": None, "weekend_pct": None, "weekday_pct": None,
                 "fetched_at":    RUN_STARTED_AT,
@@ -140,7 +139,7 @@ for idx, unit_code in enumerate(remaining, start=len(done) + 1):
         rows.append({
             "unit_code": unit_code, "park_name": park_name,
             "has_campgrounds": False, "n_facilities": 0,
-            "n_reservable_sites": 0, "n_fcfs_sites": 0,
+            "n_reservable_sites": 0,
             "avail_nights": 0, "total_nights": 0,
             "pct_available": None, "weekend_pct": None, "weekday_pct": None,
             "fetched_at":    RUN_STARTED_AT,

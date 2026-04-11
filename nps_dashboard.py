@@ -1316,7 +1316,7 @@ with tab7:
     # ── Summary metrics ───────────────────────────────────────────────────────
     parks_with_camps = camp_df[camp_df["has_campgrounds"].astype(bool)]
     total_reservable = int(parks_with_camps["n_reservable_sites"].sum())
-    total_fcfs       = int(parks_with_camps["n_fcfs_sites"].sum())
+    total_facilities = int(parks_with_camps["n_facilities"].sum()) if "n_facilities" in parks_with_camps.columns else 0
     total_avail      = int(parks_with_camps["avail_nights"].sum())
     avg_pct          = parks_with_camps["pct_available"].dropna().mean()
     fetched_ts       = camp_df["fetched_at"].max() if "fetched_at" in camp_df.columns else "—"
@@ -1325,8 +1325,8 @@ with tab7:
     for col, label, value, sub in [
         (mc1, "Total Reservable Sites",   f"{total_reservable:,}",
          "across all 63 parks"),
-        (mc2, "Total FCFS Sites",         f"{total_fcfs:,}",
-         "first-come-first-served"),
+        (mc2, "Campground Facilities",    f"{total_facilities:,}",
+         "Recreation.gov campgrounds"),
         (mc3, f"Available Site-Nights ({t7_days}d)", f"{total_avail:,}",
          "reservable slots open"),
         (mc4, "Avg % Available",
@@ -1381,7 +1381,7 @@ with tab7:
                 unsafe_allow_html=True)
 
     display_df = parks_with_camps[
-        ["park_name", "n_reservable_sites", "n_fcfs_sites",
+        ["park_name", "n_reservable_sites",
          "avail_nights", "pct_available", "weekend_pct", "weekday_pct",
          "n_facilities"]
     ].copy()
@@ -1397,7 +1397,6 @@ with tab7:
         display_df.rename(columns={
             "park_name":          "Park",
             "n_reservable_sites": "Reservable Sites",
-            "n_fcfs_sites":       "FCFS Sites",
             "avail_nights":       f"Avail Nights ({t7_days}d)",
             "pct_available":      "% Available",
             "weekend_pct":        "Wknd %",
@@ -1458,7 +1457,6 @@ with tab7:
                         fac_rows.append({
                             "Campground":       f.facility_name,
                             "Reservable Sites": f.n_reservable,
-                            "FCFS Sites":       f.n_fcfs,
                             "Avail Nights":     f.available_nights,
                             "% Available":      f"{pct:.1f}%" if pct is not None else "—",
                             "Wknd %": (
@@ -1480,6 +1478,7 @@ with tab7:
     st.caption(
         f"Data fetched: {str(fetched_ts)[:19] if fetched_ts else '—'} UTC  ·  "
         f"30-day window  ·  "
-        "Source: [Recreation.gov](https://www.recreation.gov) / "
-        "[RIDB](https://ridb.recreation.gov)"
+        "Source: [Recreation.gov](https://www.recreation.gov) / [RIDB](https://ridb.recreation.gov)  ·  "
+        "First-come-first-served (walk-in) sites are not included — they are managed at the park "
+        "and not listed in Recreation.gov's reservation database."
     )
