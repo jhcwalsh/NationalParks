@@ -172,6 +172,7 @@ LIMIT    = 500
 
 DB_PATH      = Path(__file__).parent / "nps-seasonal-model" / "data" / "nps.db"
 PREVIEW_CSV  = Path(__file__).parent / "campsite_preview.csv"
+WEBCAMS_JSON = Path(__file__).parent / "webcams.json"
 
 PLOTLY_LAYOUT = dict(
     paper_bgcolor="#0f1923",
@@ -648,6 +649,18 @@ def load_campsite_preview_csv() -> pd.DataFrame:
 
 
 @st.cache_data(ttl=86400, show_spinner=False)
+def load_webcams_json() -> dict:
+    """Load pre-fetched webcams.json committed to the repository."""
+    if not WEBCAMS_JSON.exists():
+        return {}
+    import json
+    try:
+        return json.loads(WEBCAMS_JSON.read_text())
+    except Exception:
+        return {}
+
+
+@st.cache_data(ttl=86400, show_spinner=False)
 def load_park_facility_map(ridb_api_key: str) -> tuple[dict, dict, dict]:
     """Fetch NPS campground facility IDs and site counts from RIDB (cached 24 h)."""
     if not _CAMPSITES_AVAILABLE or not ridb_api_key:
@@ -972,7 +985,7 @@ _np_codes = (
 # Tabs
 # ══════════════════════════════════════════════════════════════════════════════
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "📋 Parks Overview",
     "📊 Busyness Rankings",
     "🔍 Park Detail",
@@ -981,6 +994,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "💡 Recommendations",
     "⛺ Campsite Availability",
     "🌤️ Park Conditions",
+    "📷 Webcams",
 ])
 
 _NO_API = "Enter your NPS API key in the sidebar to load this tab."
@@ -2113,4 +2127,163 @@ with tab8:
         "Wildfires: [NIFC ArcGIS](https://www.nifc.gov) (30 min cache)  ·  "
         "Alerts & Events: [NPS Developer API](https://developer.nps.gov/api/v1)  ·  "
         f"Coords: {lat:.2f}°, {lon:.2f}°"
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Tab 9 — Webcams
+# ══════════════════════════════════════════════════════════════════════════════
+
+with tab9:
+    st.markdown('<div class="section-header">National Park Webcams</div>', unsafe_allow_html=True)
+
+    wc_data = load_webcams_json()
+
+    if not wc_data:
+        st.info(
+            "**No webcam data loaded yet.**\n\n"
+            "Run the following command locally to fetch and test all webcam URLs, "
+            "then commit `webcams.json` to deploy it here:\n\n"
+            "```bash\npython fetch_webcams.py\n```\n\n"
+            "Requires `NPS_API_KEY` in your `.env` file or environment."
+        )
+        st.stop()
+
+    webcams_raw: list[dict] = wc_data.get("webcams", [])
+    fetched_str  = wc_data.get("fetched_at", "unknown")
+
+    # ── Summary metrics ───────────────────────────────────────────────────────
+    total_cams   = len(webcams_raw)
+    active_cams  = sum(1 for c in webcams_raw
+                       if (c.get("status") or {}).get("status", "").lower() == "active"
+                       or str(c.get("status","")).lower() == "active")
+    streaming    = sum(1 for c in webcams_raw if str(c.get("isStreaming","")).lower() == "true")
+    url_ok       = sum(1 for c in webcams_raw if c.get("_url_ok") is True)
+    url_tested   = sum(1 for c in webcams_raw if c.get("_url_ok") is not None)
+
+    sm1, sm2, sm3, sm4 = st.columns(4)
+    for col, label, value in [
+        (sm1, "Total Webcams",    str(total_cams)),
+        (sm2, "Active",           str(active_cams)),
+        (sm3, "Live Streaming",   str(streaming)),
+        (sm4, "URLs Verified OK", f"{url_ok} / {url_tested}" if url_tested else "not tested"),
+    ]:
+        with col:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="label">{label}</div>
+                <div class="value">{value}</div>
+            </div>""", unsafe_allow_html=True)
+
+    st.caption(f"Data fetched {fetched_str} UTC · Source: NPS Developer API")
+    st.markdown("---")
+
+    # ── Filters ───────────────────────────────────────────────────────────────
+    fc1, fc2, fc3 = st.columns([3, 2, 2])
+    with fc1:
+        # Build park list from webcam data
+        park_opts = ["All Parks"] + sorted({
+            c.get("_park_name", "") for c in webcams_raw if c.get("_park_name")
+        })
+        t9_park = st.selectbox("Filter by park", park_opts, key="t9_park")
+    with fc2:
+        t9_status = st.selectbox(
+            "Status", ["All", "Active only", "Inactive only"], key="t9_status"
+        )
+    with fc3:
+        t9_streaming = st.checkbox("Live-streaming only", key="t9_streaming")
+
+    # Apply filters
+    cams = webcams_raw
+    if t9_park != "All Parks":
+        cams = [c for c in cams if c.get("_park_name") == t9_park]
+    if t9_status == "Active only":
+        cams = [c for c in cams
+                if (c.get("status") or {}).get("status", "").lower() == "active"
+                or str(c.get("status","")).lower() == "active"]
+    elif t9_status == "Inactive only":
+        cams = [c for c in cams
+                if (c.get("status") or {}).get("status", "Active").lower() != "active"]
+    if t9_streaming:
+        cams = [c for c in cams if str(c.get("isStreaming","")).lower() == "true"]
+
+    st.caption(f"Showing {len(cams)} of {total_cams} webcams")
+    st.markdown("---")
+
+    # ── Webcam grid ───────────────────────────────────────────────────────────
+    if not cams:
+        st.info("No webcams match the selected filters.")
+    else:
+        COLS = 3
+        for row_start in range(0, len(cams), COLS):
+            cols = st.columns(COLS)
+            for col, cam in zip(cols, cams[row_start:row_start + COLS]):
+                title      = cam.get("title", "Webcam")
+                park_name  = cam.get("_park_name", "")
+                cam_url    = cam.get("url", "")
+                images     = cam.get("images") or []
+                img_url    = images[0].get("url", "") if images else ""
+                is_stream  = str(cam.get("isStreaming","")).lower() == "true"
+                status_obj = cam.get("status") or {}
+                status_str = (status_obj.get("status", "")
+                              if isinstance(status_obj, dict)
+                              else str(status_obj))
+                is_active  = status_str.lower() == "active"
+                url_ok_val = cam.get("_url_ok")
+                url_err    = cam.get("_url_error", "")
+
+                # Status badges
+                status_badge = (
+                    '<span style="background:#27ae60;color:#fff;font-size:10px;'
+                    'padding:2px 7px;border-radius:10px;margin-right:4px">Active</span>'
+                    if is_active else
+                    '<span style="background:#555;color:#ccc;font-size:10px;'
+                    'padding:2px 7px;border-radius:10px;margin-right:4px">Inactive</span>'
+                )
+                stream_badge = (
+                    '<span style="background:#1a6fa8;color:#fff;font-size:10px;'
+                    'padding:2px 7px;border-radius:10px">🔴 Live</span>'
+                    if is_stream else ""
+                )
+                url_badge = ""
+                if url_ok_val is True:
+                    url_badge = ('<span style="background:#27ae60;color:#fff;font-size:10px;'
+                                 'padding:2px 7px;border-radius:10px;margin-left:4px">✓ URL OK</span>')
+                elif url_ok_val is False:
+                    url_badge = ('<span style="background:#c0392b;color:#fff;font-size:10px;'
+                                 'padding:2px 7px;border-radius:10px;margin-left:4px"'
+                                 f' title="{url_err}">✗ URL broken</span>')
+
+                with col:
+                    if img_url:
+                        st.image(img_url, use_container_width=True)
+                    st.markdown(
+                        f'<div style="font-size:11px;color:#7a9bbb;margin-bottom:2px">'
+                        f'{park_name}</div>'
+                        f'<div style="font-weight:600;margin-bottom:4px">{title}</div>'
+                        f'{status_badge}{stream_badge}{url_badge}',
+                        unsafe_allow_html=True,
+                    )
+                    if cam_url:
+                        st.markdown(f"[View webcam →]({cam_url})")
+                    st.markdown("<div style='margin-bottom:16px'></div>",
+                                unsafe_allow_html=True)
+
+    # ── Failed URLs expander ──────────────────────────────────────────────────
+    broken = [c for c in webcams_raw if c.get("_url_ok") is False]
+    if broken:
+        with st.expander(f"Broken URLs ({len(broken)} webcams)", expanded=False):
+            for cam in broken:
+                st.markdown(
+                    f"**{cam.get('_park_name','')} — {cam.get('title','')}**  \n"
+                    f"`{cam.get('url','no url')}`  \n"
+                    f"Error: {cam.get('_url_error','unknown')}  \n"
+                    f"HTTP {cam.get('_url_status','—')}"
+                )
+                st.markdown("---")
+
+    # ── Footer ────────────────────────────────────────────────────────────────
+    st.caption(
+        "Source: [NPS Developer API](https://developer.nps.gov/api/v1) /webcams endpoint  ·  "
+        "Run `python fetch_webcams.py` to refresh data and re-test all URLs."
     )
