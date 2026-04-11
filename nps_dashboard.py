@@ -435,46 +435,58 @@ def score_color(score: float) -> str:
 @st.cache_data(ttl=1800, show_spinner=False)
 def load_weather(lat: float, lon: float) -> dict:
     """Current conditions + 7-day forecast from Open-Meteo (no API key needed)."""
-    try:
-        r = requests.get(
-            "https://api.open-meteo.com/v1/forecast",
-            params={
-                "latitude": lat, "longitude": lon,
-                "current": "temperature_2m,apparent_temperature,precipitation,"
-                           "wind_speed_10m,wind_direction_10m,weather_code,uv_index",
-                "daily": "weather_code,temperature_2m_max,temperature_2m_min,"
-                         "precipitation_sum,uv_index_max,sunrise,sunset",
-                "temperature_unit": "fahrenheit",
-                "wind_speed_unit": "mph",
-                "precipitation_unit": "inch",
-                "timezone": "auto",
-                "forecast_days": 7,
-            },
-            timeout=10,
-        )
-        r.raise_for_status()
-        return r.json()
-    except Exception:
-        return {}
+    import time
+    last_exc: str = ""
+    for attempt in range(3):
+        try:
+            r = requests.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude": lat, "longitude": lon,
+                    "current": "temperature_2m,apparent_temperature,precipitation,"
+                               "wind_speed_10m,wind_direction_10m,weather_code,uv_index",
+                    "daily": "weather_code,temperature_2m_max,temperature_2m_min,"
+                             "precipitation_sum,uv_index_max,sunrise,sunset",
+                    "temperature_unit": "fahrenheit",
+                    "wind_speed_unit": "mph",
+                    "precipitation_unit": "inch",
+                    "timezone": "auto",
+                    "forecast_days": 7,
+                },
+                timeout=20,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            last_exc = f"{type(e).__name__}: {e}"
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+    return {"_error": last_exc}
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
 def load_aqi(lat: float, lon: float) -> dict:
     """Current AQI + pollutant breakdown from Open-Meteo Air Quality (no key needed)."""
-    try:
-        r = requests.get(
-            "https://air-quality-api.open-meteo.com/v1/air-quality",
-            params={
-                "latitude": lat, "longitude": lon,
-                "current": "us_aqi,pm10,pm2_5,ozone,carbon_monoxide",
-                "timezone": "auto",
-            },
-            timeout=10,
-        )
-        r.raise_for_status()
-        return r.json()
-    except Exception:
-        return {}
+    import time
+    last_exc: str = ""
+    for attempt in range(3):
+        try:
+            r = requests.get(
+                "https://air-quality-api.open-meteo.com/v1/air-quality",
+                params={
+                    "latitude": lat, "longitude": lon,
+                    "current": "us_aqi,pm10,pm2_5,ozone,carbon_monoxide",
+                    "timezone": "auto",
+                },
+                timeout=20,
+            )
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            last_exc = f"{type(e).__name__}: {e}"
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+    return {"_error": last_exc}
 
 
 @st.cache_data(ttl=600, show_spinner=False)
@@ -1854,8 +1866,8 @@ with tab8:
     # ── Weather ───────────────────────────────────────────────────────────────
     st.markdown('<div class="section-header">Weather</div>', unsafe_allow_html=True)
 
-    if not wx:
-        st.warning("Weather data unavailable — Open-Meteo could not be reached.")
+    if not wx or "_error" in wx:
+        st.warning(f"Weather data unavailable — {wx.get('_error', 'Open-Meteo could not be reached.')}")
     else:
         cur = wx.get("current", {})
         wmo_code  = int(cur.get("weather_code", 0))
@@ -1912,8 +1924,8 @@ with tab8:
     # ── Air Quality ───────────────────────────────────────────────────────────
     st.markdown('<div class="section-header">Air Quality</div>', unsafe_allow_html=True)
 
-    if not aqi:
-        st.warning("Air quality data unavailable.")
+    if not aqi or "_error" in aqi:
+        st.warning(f"Air quality data unavailable — {aqi.get('_error', 'Open-Meteo could not be reached.') if aqi else 'Open-Meteo could not be reached.'}")
     else:
         aqi_cur  = aqi.get("current", {})
         aqi_val  = aqi_cur.get("us_aqi")
