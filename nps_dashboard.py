@@ -183,6 +183,45 @@ PLOTLY_LAYOUT = dict(
 MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun",
                "Jul","Aug","Sep","Oct","Nov","Dec"]
 
+# ── Static lat/lon for all 63 national parks ──────────────────────────────────
+PARK_COORDS: dict[str, tuple[float, float]] = {
+    "ACAD": (44.35, -68.21),  "NPSA": (-14.25, -170.68), "ARCH": (38.68, -109.57),
+    "BADL": (43.85, -102.34), "BIBE": (29.25, -103.25),  "BISC": (25.48,  -80.43),
+    "BLCA": (38.57, -107.72), "BRCA": (37.57, -112.18),  "CANY": (38.20, -109.93),
+    "CARE": (38.20, -111.17), "CAVE": (32.18, -104.44),  "CHIS": (34.01, -119.42),
+    "CONG": (33.78,  -80.78), "CRLA": (42.94, -122.10),  "CUVA": (41.24,  -81.55),
+    "DEVA": (36.24, -116.82), "DENA": (63.73, -152.49),  "DRTO": (24.63,  -82.87),
+    "EVER": (25.39,  -80.93), "GAAR": (67.78, -153.30),  "JEFF": (38.62,  -90.18),
+    "GLAC": (48.70, -113.72), "GLBA": (58.50, -136.90),  "GRCA": (36.10, -112.10),
+    "GRTE": (43.73, -110.80), "GRBA": (39.00, -114.30),  "GRSA": (37.73, -105.51),
+    "GRSM": (35.68,  -83.53), "GUMO": (31.92, -104.87),  "HALE": (20.72, -156.17),
+    "HAVO": (19.43, -155.26), "HOSP": (34.51,  -93.05),  "INDU": (41.65,  -87.05),
+    "ISRO": (47.99,  -88.91), "JOTR": (33.87, -115.90),  "KATM": (58.50, -154.97),
+    "KEFJ": (59.92, -149.65), "KICA": (36.79, -118.56),  "KOVA": (67.33, -159.12),
+    "LACL": (60.97, -153.42), "LAVO": (40.49, -121.51),  "MACA": (37.19,  -86.10),
+    "MEVE": (37.18, -108.49), "MORA": (46.85, -121.74),  "NERI": (37.94,  -81.07),
+    "NOCA": (48.49, -121.20), "OLYM": (47.97, -123.50),  "PEFO": (34.98, -109.78),
+    "PINN": (36.49, -121.16), "REDW": (41.30, -124.00),  "ROMO": (40.40, -105.58),
+    "SAGU": (32.25, -110.50), "SEQU": (36.43, -118.68),  "SHEN": (38.53,  -78.35),
+    "THRO": (46.97, -103.45), "VIIS": (18.33,  -64.73),  "VOYA": (48.49,  -92.84),
+    "WHSA": (32.78, -106.17), "WICA": (43.57, -103.48),  "WRST": (61.00, -142.00),
+    "YELL": (44.60, -110.50), "YOSE": (37.87, -119.55),  "ZION": (37.30, -113.05),
+}
+
+# WMO weather-code → (emoji, description)
+WMO: dict[int, tuple[str, str]] = {
+    0:  ("☀️",  "Clear sky"),       1:  ("🌤️", "Mainly clear"),
+    2:  ("⛅",  "Partly cloudy"),   3:  ("☁️",  "Overcast"),
+    45: ("🌫️", "Fog"),             48: ("🌫️", "Icy fog"),
+    51: ("🌦️", "Light drizzle"),  53: ("🌦️", "Drizzle"),       55: ("🌧️", "Heavy drizzle"),
+    61: ("🌧️", "Slight rain"),    63: ("🌧️", "Moderate rain"),  65: ("🌧️", "Heavy rain"),
+    71: ("🌨️", "Slight snow"),    73: ("🌨️", "Moderate snow"),  75: ("🌨️", "Heavy snow"),
+    77: ("🌨️", "Snow grains"),
+    80: ("🌦️", "Slight showers"), 81: ("🌧️", "Showers"),        82: ("⛈️",  "Heavy showers"),
+    85: ("🌨️", "Snow showers"),   86: ("🌨️", "Heavy snow showers"),
+    95: ("⛈️",  "Thunderstorm"),  96: ("⛈️",  "Thunderstorm + hail"), 99: ("⛈️",  "Thunderstorm + hail"),
+}
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # NPS API helpers  (tabs 1–3)
@@ -387,6 +426,89 @@ def score_color(score: float) -> str:
     if score >= 50: return "#e67e22"
     if score >= 20: return "#f39c12"
     return "#27ae60"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Park Conditions helpers  (tab 8)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def load_weather(lat: float, lon: float) -> dict:
+    """Current conditions + 7-day forecast from Open-Meteo (no API key needed)."""
+    try:
+        r = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": lat, "longitude": lon,
+                "current": "temperature_2m,apparent_temperature,precipitation,"
+                           "wind_speed_10m,wind_direction_10m,weather_code,uv_index",
+                "daily": "weather_code,temperature_2m_max,temperature_2m_min,"
+                         "precipitation_sum,uv_index_max,sunrise,sunset",
+                "temperature_unit": "fahrenheit",
+                "wind_speed_unit": "mph",
+                "precipitation_unit": "inch",
+                "timezone": "auto",
+                "forecast_days": 7,
+            },
+            timeout=10,
+        )
+        r.raise_for_status()
+        return r.json()
+    except Exception:
+        return {}
+
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def load_aqi(lat: float, lon: float) -> dict:
+    """Current AQI + pollutant breakdown from Open-Meteo Air Quality (no key needed)."""
+    try:
+        r = requests.get(
+            "https://air-quality-api.open-meteo.com/v1/air-quality",
+            params={
+                "latitude": lat, "longitude": lon,
+                "current": "us_aqi,pm10,pm2_5,ozone,carbon_monoxide",
+                "timezone": "auto",
+            },
+            timeout=10,
+        )
+        r.raise_for_status()
+        return r.json()
+    except Exception:
+        return {}
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def load_park_events(park_code: str, api_key: str) -> list:
+    if not api_key:
+        return []
+    return nps_get("/events", api_key, {"parkCode": park_code.lower()})
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_park_webcams(park_code: str, api_key: str) -> list:
+    if not api_key:
+        return []
+    return nps_get("/webcams", api_key, {"parkCode": park_code.lower()})
+
+
+def _aqi_color(aqi: float) -> str:
+    if aqi <= 50:  return "#27ae60"
+    if aqi <= 100: return "#f1c40f"
+    if aqi <= 150: return "#e67e22"
+    if aqi <= 200: return "#c0392b"
+    if aqi <= 300: return "#8e44ad"
+    return "#7f0000"
+
+def _aqi_label(aqi: float) -> str:
+    if aqi <= 50:  return "Good"
+    if aqi <= 100: return "Moderate"
+    if aqi <= 150: return "Unhealthy for Sensitive Groups"
+    if aqi <= 200: return "Unhealthy"
+    if aqi <= 300: return "Very Unhealthy"
+    return "Hazardous"
+
+def _wind_dir(deg: float) -> str:
+    return ["N","NE","E","SE","S","SW","W","NW"][round(float(deg) / 45) % 8]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -729,7 +851,7 @@ _np_codes = (
 # Tabs
 # ══════════════════════════════════════════════════════════════════════════════
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "📋 Parks Overview",
     "📊 Busyness Rankings",
     "🔍 Park Detail",
@@ -737,6 +859,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "⚖️ Compare Parks",
     "💡 Recommendations",
     "⛺ Campsite Availability",
+    "🌤️ Park Conditions",
 ])
 
 _NO_API = "Enter your NPS API key in the sidebar to load this tab."
@@ -1546,4 +1669,212 @@ with tab7:
         "Reservable site data: [Recreation.gov](https://www.recreation.gov) / [RIDB](https://ridb.recreation.gov)  ·  "
         "FCFS site counts: [NPS Developer API](https://developer.nps.gov/api/v1) `/campgrounds` "
         "(requires NPS API key in sidebar)"
+    )
+
+
+# ────────────────────────────────────────────────────────────────────────────────
+# TAB 8 — Park Conditions  (weather · AQI · alerts · events · webcams)
+# ────────────────────────────────────────────────────────────────────────────────
+with tab8:
+    st.markdown('<div class="section-header">Park Conditions</div>', unsafe_allow_html=True)
+
+    # ── Park selector ─────────────────────────────────────────────────────────
+    np_names_sorted = sorted(
+        (name, code) for code, name in (
+            _nps_campsites.NATIONAL_PARKS.items() if _CAMPSITES_AVAILABLE else []
+        )
+    )
+    t8_park_label = st.selectbox(
+        "Select a park",
+        [n for n, _ in np_names_sorted],
+        key="t8_park",
+    )
+    t8_uc = next((c for n, c in np_names_sorted if n == t8_park_label), None)
+
+    if not t8_uc:
+        st.info("Select a park above.")
+        st.stop()
+
+    lat, lon = PARK_COORDS.get(t8_uc, (None, None))
+    if lat is None:
+        st.warning(f"No coordinates available for {t8_park_label}.")
+        st.stop()
+
+    # Fetch all data in parallel (Streamlit runs them concurrently via cache)
+    with st.spinner("Loading conditions…"):
+        wx   = load_weather(lat, lon)
+        aqi  = load_aqi(lat, lon)
+
+    t8_alerts  = (
+        alerts_df[alerts_df["parkCode"].str.lower() == t8_uc.lower()]
+        if not alerts_df.empty else pd.DataFrame()
+    )
+    events   = load_park_events(t8_uc, api_key)
+    webcams  = load_park_webcams(t8_uc, api_key)
+
+    # ── NPS Alerts ────────────────────────────────────────────────────────────
+    st.markdown('<div class="section-header">Active Alerts</div>', unsafe_allow_html=True)
+    if not api_key:
+        st.caption("Enter NPS API key in the sidebar to load alerts.")
+    elif t8_alerts.empty:
+        st.success("No active alerts for this park.")
+    else:
+        full_alerts = [
+            a for a in nps_get("/alerts", api_key, {"parkCode": t8_uc.lower()})
+        ]
+        if not full_alerts:
+            st.success("No active alerts.")
+        for alert in full_alerts:
+            cat   = alert.get("category", "")
+            color = {"Closure": "#c0392b", "Danger": "#e67e22",
+                     "Caution": "#f39c12"}.get(cat, "#1a6fa8")
+            st.markdown(f"""
+            <div class="detail-card" style="border-left-color:{color}; margin-bottom:8px;">
+                <strong>[{cat}] {alert.get("title","")}</strong><br>
+                <small style="color:#7a9bbb">{alert.get("description","")}</small>
+            </div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── Weather ───────────────────────────────────────────────────────────────
+    st.markdown('<div class="section-header">Weather</div>', unsafe_allow_html=True)
+
+    if not wx:
+        st.warning("Weather data unavailable — Open-Meteo could not be reached.")
+    else:
+        cur = wx.get("current", {})
+        wmo_code  = int(cur.get("weather_code", 0))
+        emoji, desc = WMO.get(wmo_code, ("🌡️", "Unknown"))
+        temp      = cur.get("temperature_2m")
+        feels     = cur.get("apparent_temperature")
+        wind_spd  = cur.get("wind_speed_10m")
+        wind_deg  = cur.get("wind_direction_10m", 0)
+        precip    = cur.get("precipitation")
+        uv        = cur.get("uv_index")
+
+        # Current conditions cards
+        wc1, wc2, wc3, wc4, wc5 = st.columns(5)
+        for col, label, value in [
+            (wc1, "Conditions",   f"{emoji} {desc}"),
+            (wc2, "Temperature",  f"{temp:.0f}°F" if temp is not None else "—"),
+            (wc3, "Feels Like",   f"{feels:.0f}°F" if feels is not None else "—"),
+            (wc4, "Wind",         f"{wind_spd:.0f} mph {_wind_dir(wind_deg)}" if wind_spd is not None else "—"),
+            (wc5, "UV Index",     f"{uv:.0f}" if uv is not None else "—"),
+        ]:
+            with col:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="label">{label}</div>
+                    <div class="value" style="font-size:20px">{value}</div>
+                </div>""", unsafe_allow_html=True)
+
+        # 7-day forecast
+        st.markdown("**7-Day Forecast**")
+        daily = wx.get("daily", {})
+        if daily.get("time"):
+            cols = st.columns(7)
+            for i, (col, day_date) in enumerate(zip(cols, daily["time"])):
+                d_code  = int((daily.get("weather_code") or [0]*7)[i])
+                d_emoji = WMO.get(d_code, ("🌡️",""))[0]
+                d_hi    = (daily.get("temperature_2m_max") or [None]*7)[i]
+                d_lo    = (daily.get("temperature_2m_min") or [None]*7)[i]
+                d_prec  = (daily.get("precipitation_sum") or [None]*7)[i]
+                d_label = pd.to_datetime(day_date).strftime("%a %-d")
+                hi_str  = f"{d_hi:.0f}°" if d_hi is not None else "—"
+                lo_str  = f"{d_lo:.0f}°" if d_lo is not None else "—"
+                pr_str  = f"{d_prec:.2f}\"" if d_prec else ""
+                with col:
+                    st.markdown(f"""
+                    <div class="metric-card" style="text-align:center;padding:10px 6px">
+                        <div class="label">{d_label}</div>
+                        <div style="font-size:22px">{d_emoji}</div>
+                        <div style="font-size:14px;color:#e8edf2">{hi_str} / {lo_str}</div>
+                        <div class="sub">{pr_str}</div>
+                    </div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── Air Quality ───────────────────────────────────────────────────────────
+    st.markdown('<div class="section-header">Air Quality</div>', unsafe_allow_html=True)
+
+    if not aqi:
+        st.warning("Air quality data unavailable.")
+    else:
+        aqi_cur  = aqi.get("current", {})
+        aqi_val  = aqi_cur.get("us_aqi")
+        pm25     = aqi_cur.get("pm2_5")
+        pm10     = aqi_cur.get("pm10")
+        ozone    = aqi_cur.get("ozone")
+
+        aq1, aq2, aq3, aq4 = st.columns(4)
+        aqi_c    = _aqi_color(aqi_val) if aqi_val is not None else "#4a6680"
+        aqi_lbl  = _aqi_label(aqi_val) if aqi_val is not None else "—"
+        for col, label, value, border in [
+            (aq1, "US AQI",  f"{int(aqi_val)}" if aqi_val is not None else "—", aqi_c),
+            (aq2, "PM 2.5",  f"{pm25:.1f} μg/m³" if pm25 is not None else "—",  "#1a6fa8"),
+            (aq3, "PM 10",   f"{pm10:.1f} μg/m³" if pm10 is not None else "—",  "#1a6fa8"),
+            (aq4, "Ozone",   f"{ozone:.1f} μg/m³" if ozone is not None else "—","#1a6fa8"),
+        ]:
+            with col:
+                st.markdown(f"""
+                <div class="metric-card" style="border-left-color:{border}">
+                    <div class="label">{label}</div>
+                    <div class="value">{value}</div>
+                    <div class="sub">{aqi_lbl if label == "US AQI" else ""}</div>
+                </div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── Webcams ───────────────────────────────────────────────────────────────
+    if api_key and webcams:
+        st.markdown('<div class="section-header">Webcams</div>', unsafe_allow_html=True)
+        for cam in webcams[:6]:
+            title    = cam.get("title", "Webcam")
+            desc     = cam.get("description", "")
+            url      = cam.get("url", "")
+            img_url  = (cam.get("images") or [{}])[0].get("url", "")
+            c1, c2 = st.columns([1, 3])
+            with c1:
+                if img_url:
+                    st.image(img_url, use_container_width=True)
+            with c2:
+                st.markdown(f"**{title}**")
+                if desc:
+                    st.caption(desc[:200])
+                if url:
+                    st.markdown(f"[View live webcam]({url})")
+        st.markdown("---")
+
+    # ── Upcoming Events ───────────────────────────────────────────────────────
+    if api_key:
+        st.markdown('<div class="section-header">Upcoming Events</div>', unsafe_allow_html=True)
+        if not events:
+            st.caption("No upcoming events found for this park.")
+        else:
+            for ev in events[:8]:
+                title   = ev.get("title", "")
+                dates   = ev.get("dates", "")
+                times   = ev.get("times", [{}])
+                loc     = ev.get("location", "")
+                desc    = ev.get("description", "")
+                fee     = ev.get("isfree", "true")
+                time_str = times[0].get("timestart", "")[:5] if times else ""
+                st.markdown(f"""
+                <div class="detail-card" style="margin-bottom:8px">
+                    <strong>{title}</strong>
+                    <span style="color:#7a9bbb;font-size:12px;margin-left:12px">
+                        {dates} {time_str}{"  ·  " + loc if loc else ""}
+                        {"  ·  Free" if str(fee).lower()=="true" else ""}
+                    </span><br>
+                    <small style="color:#7a9bbb">{(desc or "")[:180]}</small>
+                </div>""", unsafe_allow_html=True)
+    elif not api_key:
+        st.caption("Enter NPS API key in the sidebar to load events and webcams.")
+
+    # ── Footer ────────────────────────────────────────────────────────────────
+    st.markdown("---")
+    st.caption(
+        "Weather & AQI: [Open-Meteo](https://open-meteo.com) (refreshes every 30 min, no API key needed)  ·  "
+        "Alerts & Events: [NPS Developer API](https://developer.nps.gov/api/v1)  ·  "
+        f"Coords: {lat:.2f}°, {lon:.2f}°"
     )
