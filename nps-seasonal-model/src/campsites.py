@@ -253,17 +253,19 @@ def _ridb_get(endpoint: str, api_key: str, params: dict | None = None) -> list[d
     return all_data
 
 
-def build_park_facility_map(api_key: str) -> tuple[dict[str, list[str]], dict[str, str]]:
+def build_park_facility_map(api_key: str) -> tuple[dict[str, list[str]], dict[str, str], dict[str, tuple[int, int]]]:
     """
     Query RIDB to map the 63 national park unit codes to Recreation.gov
-    campground facility IDs.
+    campground facility IDs, and fetch per-facility site counts.
 
-    Makes 2–4 paginated API calls total (rec areas + facilities).
+    Makes 2–4 paginated API calls for the park/facility map, then one
+    paginated call per matched facility to count reservable vs FCFS sites.
 
     Returns
     -------
-    park_map      : unit_code → [facility_id, ...]   (only parks with campgrounds)
-    facility_names: facility_id → facility_name
+    park_map          : unit_code → [facility_id, ...]   (only parks with campgrounds)
+    facility_names    : facility_id → facility_name
+    facility_site_counts : facility_id → (n_reservable, n_fcfs)
     """
     # 1. Fetch all NPS rec areas and build normalised-name → rec_area_id lookup
     logger.info("Fetching NPS rec areas from RIDB…")
@@ -325,10 +327,24 @@ def build_park_facility_map(api_key: str) -> tuple[dict[str, list[str]], dict[st
         if ids:
             park_map[unit_code] = ids
 
+    # 6. Fetch per-facility campsite counts from RIDB so we get accurate
+    #    reservable AND FCFS counts (the availability API omits FCFS sites).
+    all_facility_ids = [fid for ids in park_map.values() for fid in ids]
+    logger.info(
+        "Fetching campsite metadata for %d facilities from RIDB…",
+        len(all_facility_ids),
+    )
+    facility_site_counts: dict[str, tuple[int, int]] = {}
+    for fac_id in all_facility_ids:
+        campsites = _ridb_get(f"/facilities/{fac_id}/campsites", api_key)
+        n_res  = sum(1 for cs in campsites if _is_reservable(str(cs.get("CampsiteReserveType", ""))))
+        n_fcfs = len(campsites) - n_res
+        facility_site_counts[fac_id] = (n_res, n_fcfs)
+
     logger.info(
         "Found campground facilities for %d / %d parks", len(park_map), len(NATIONAL_PARKS)
     )
-    return park_map, facility_names
+    return park_map, facility_names, facility_site_counts
 
 
 # ── Availability API ───────────────────────────────────────────────────────────
@@ -387,20 +403,26 @@ def aggregate_facility_availability(
     window_end: date,
     facility_id: str = "",
     facility_name: str = "",
+    ridb_n_reservable: int | None = None,
+    ridb_n_fcfs: int | None = None,
 ) -> FacilityStats:
     """
     Aggregate raw campsite availability data into a FacilityStats.
 
     Args
     ----
-    campsites_raw : dict of site_id → site data from fetch_month_availability
-    window_start  : first date of the analysis window (inclusive)
-    window_end    : last date of the analysis window (exclusive)
+    campsites_raw     : dict of site_id → site data from fetch_month_availability
+    window_start      : first date of the analysis window (inclusive)
+    window_end        : last date of the analysis window (exclusive)
+    ridb_n_reservable : reservable site count from RIDB metadata (preferred).
+                        If None, counted from campsites_raw (may under-count).
+    ridb_n_fcfs       : FCFS site count from RIDB metadata (preferred).
+                        The availability API omits FCFS sites entirely, so
+                        this must come from RIDB to be accurate.
     """
     stats = FacilityStats(facility_id=facility_id, facility_name=facility_name)
 
     window_dates = list(_date_range(window_start, window_end))
-    # Map ISO date string (as returned by Rec.gov) → weekday flag
     window_date_map: dict[str, bool] = {}
     for d in window_dates:
         key = d.strftime("%Y-%m-%dT00:00:00Z")
@@ -410,28 +432,33 @@ def aggregate_facility_availability(
     n_weekend = sum(1 for v in window_date_map.values() if v)
     n_weekday = n_total - n_weekend
 
+    # Use RIDB counts when available — the availability API omits FCFS sites
+    # so counting from campsites_raw alone always gives n_fcfs = 0.
+    api_reservable_count = 0
     for _site_id, site in campsites_raw.items():
-        reserve_type  = str(site.get("campsite_reserve_type", ""))
+        reserve_type   = str(site.get("campsite_reserve_type", ""))
         availabilities: dict[str, str] = site.get("availabilities", {})
 
         if _is_reservable(reserve_type):
-            stats.n_reservable          += 1
-            stats.total_reservable_nights += n_total
-            stats.weekend_total          += n_weekend
-            stats.weekday_total          += n_weekday
-
+            api_reservable_count += 1
             for date_str, status in availabilities.items():
                 is_wknd = window_date_map.get(date_str)
                 if is_wknd is None:
-                    continue  # outside window
+                    continue
                 if _is_available(status):
                     stats.available_nights += 1
                     if is_wknd:
                         stats.weekend_available += 1
                     else:
                         stats.weekday_available += 1
-        else:
-            stats.n_fcfs += 1
+
+    # Prefer RIDB counts; fall back to availability API count
+    stats.n_reservable = ridb_n_reservable if ridb_n_reservable is not None else api_reservable_count
+    stats.n_fcfs       = ridb_n_fcfs       if ridb_n_fcfs       is not None else 0
+
+    stats.total_reservable_nights = stats.n_reservable * n_total
+    stats.weekend_total           = stats.n_reservable * n_weekend
+    stats.weekday_total           = stats.n_reservable * n_weekday
 
     return stats
 
@@ -442,6 +469,7 @@ def fetch_park_campsite_stats(
     unit_code: str,
     facility_ids: list[str],
     facility_names: dict[str, str],
+    facility_site_counts: dict[str, tuple[int, int]] | None = None,
     window_start: date | None = None,
     window_days: int = 30,
 ) -> ParkCampsiteStats:
@@ -452,7 +480,8 @@ def fetch_park_campsite_stats(
     fetching 1-2 months of availability data per facility (covering the window),
     then aggregates into FacilityStats and ParkCampsiteStats.
 
-    Applies RATE_LIMIT_DELAY between each facility's availability calls.
+    facility_site_counts, if provided, supplies accurate reservable/FCFS
+    counts from RIDB metadata (the availability API omits FCFS sites).
     """
     if window_start is None:
         window_start = date.today()
@@ -469,7 +498,6 @@ def fetch_park_campsite_stats(
     months = _months_in_window(window_start, window_days)
 
     for fac_id in facility_ids:
-        # Fetch and merge availability across all months the window spans
         combined: dict[str, dict] = {}
         for month_start in months:
             raw = fetch_month_availability(fac_id, month_start)
@@ -481,10 +509,13 @@ def fetch_park_campsite_stats(
                 )
             time.sleep(RATE_LIMIT_DELAY + random.uniform(0, RATE_LIMIT_DELAY * 0.5))
 
-        fac_name = facility_names.get(fac_id, f"Campground {fac_id}")
+        ridb_res, ridb_fcfs = (facility_site_counts or {}).get(fac_id, (None, None))
+        fac_name  = facility_names.get(fac_id, f"Campground {fac_id}")
         fac_stats = aggregate_facility_availability(
             combined, window_start, window_end,
             facility_id=fac_id, facility_name=fac_name,
+            ridb_n_reservable=ridb_res,
+            ridb_n_fcfs=ridb_fcfs,
         )
         park_stats.facilities.append(fac_stats)
 
@@ -494,6 +525,7 @@ def fetch_park_campsite_stats(
 def fetch_all_parks_stats(
     park_facility_map: dict[str, list[str]],
     facility_names: dict[str, str],
+    facility_site_counts: dict[str, tuple[int, int]] | None = None,
     window_start: date | None = None,
     window_days: int = 30,
     progress_callback: Callable[[int, int, str], None] | None = None,
@@ -506,11 +538,12 @@ def fetch_all_parks_stats(
 
     Args
     ----
-    park_facility_map : unit_code → [facility_id, ...]
-    facility_names    : facility_id → facility_name
-    window_start      : first date of window (default: today)
-    window_days       : length of window (default: 30)
-    progress_callback : optional fn(current_index, total, park_name) for UI feedback
+    park_facility_map    : unit_code → [facility_id, ...]
+    facility_names       : facility_id → facility_name
+    facility_site_counts : facility_id → (n_reservable, n_fcfs) from RIDB metadata
+    window_start         : first date of window (default: today)
+    window_days          : length of window (default: 30)
+    progress_callback    : optional fn(current_index, total, park_name) for UI feedback
 
     Returns
     -------
@@ -533,7 +566,7 @@ def fetch_all_parks_stats(
         facility_ids = park_facility_map.get(unit_code, [])
         if facility_ids:
             ps = fetch_park_campsite_stats(
-                unit_code, facility_ids, facility_names,
+                unit_code, facility_ids, facility_names, facility_site_counts,
                 window_start=window_start, window_days=window_days,
             )
             rows.append({

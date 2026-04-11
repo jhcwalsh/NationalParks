@@ -348,10 +348,10 @@ def score_color(score: float) -> str:
 # ══════════════════════════════════════════════════════════════════════════════
 
 @st.cache_data(ttl=86400, show_spinner=False)
-def load_park_facility_map(ridb_api_key: str) -> tuple[dict, dict]:
-    """Fetch NPS campground facility IDs from RIDB (cached 24 h)."""
+def load_park_facility_map(ridb_api_key: str) -> tuple[dict, dict, dict]:
+    """Fetch NPS campground facility IDs and site counts from RIDB (cached 24 h)."""
     if not _CAMPSITES_AVAILABLE or not ridb_api_key:
-        return {}, {}
+        return {}, {}, {}
     return _nps_campsites.build_park_facility_map(ridb_api_key)
 
 
@@ -376,13 +376,14 @@ def load_campsite_availability(
     if cached is not None and not cached.empty:
         return cached
 
-    park_map, fac_names = _nps_campsites.build_park_facility_map(ridb_api_key)
+    park_map, fac_names, site_counts = _nps_campsites.build_park_facility_map(ridb_api_key)
     if not park_map:
         return pd.DataFrame()
 
     df = _nps_campsites.fetch_all_parks_stats(
         park_map,
         fac_names,
+        facility_site_counts=site_counts,
         window_start=date.fromisoformat(window_start_str),
         window_days=window_days,
     )
@@ -1413,14 +1414,14 @@ with tab7:
                 )
                 drill_uc = drill_options[drill_label]
                 if st.button("Load campground detail →", key="t7_drill_btn"):
-                    fac_map, fac_names = load_park_facility_map(ridb_key)
+                    fac_map, fac_names, fac_site_counts = load_park_facility_map(ridb_key)
                     fac_ids = fac_map.get(drill_uc, [])
                     if not fac_ids:
                         st.info("No facility IDs found for this park.")
                     else:
                         with st.spinner(f"Fetching per-campground data for {drill_label}…"):
                             ps = _nps_campsites.fetch_park_campsite_stats(
-                                drill_uc, fac_ids, fac_names,
+                                drill_uc, fac_ids, fac_names, fac_site_counts,
                                 window_start=t7_start, window_days=t7_days,
                             )
                         fac_rows = []

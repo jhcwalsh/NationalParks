@@ -56,8 +56,8 @@ if CHECKPOINT.exists():
     print(f"Resuming from checkpoint — {len(done)} / {len(NATIONAL_PARKS)} parks already done.\n")
 
 # ── Discover campground facility IDs ──────────────────────────────────────────
-print("Step 1/2 — Discovering campgrounds via RIDB…")
-park_map, fac_names = build_park_facility_map(RIDB_KEY)
+print("Step 1/2 — Discovering campgrounds + site counts via RIDB…")
+park_map, fac_names, site_counts = build_park_facility_map(RIDB_KEY)
 print(f"  {len(park_map)} parks with campgrounds  "
       f"({sum(len(v) for v in park_map.values())} facilities total)\n")
 
@@ -77,7 +77,7 @@ for idx, unit_code in enumerate(remaining, start=len(done) + 1):
 
     if facility_ids:
         try:
-            ps = fetch_park_campsite_stats(unit_code, facility_ids, fac_names, window_days=30)
+            ps = fetch_park_campsite_stats(unit_code, facility_ids, fac_names, site_counts, window_days=30)
             rows.append({
                 "unit_code":          unit_code,
                 "park_name":          park_name,
