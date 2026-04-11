@@ -1353,10 +1353,10 @@ with tab7:
             st.markdown('<div class="section-header">Park Breakdown</div>',
                         unsafe_allow_html=True)
 
-            display_df = camp_df[
+            display_df = parks_with_camps[
                 ["park_name", "n_reservable_sites", "n_fcfs_sites",
                  "avail_nights", "pct_available", "weekend_pct", "weekday_pct",
-                 "has_campgrounds", "n_facilities"]
+                 "n_facilities"]
             ].copy()
 
             def fmt_pct(v):
@@ -1365,9 +1365,6 @@ with tab7:
             display_df["pct_available"] = display_df["pct_available"].apply(fmt_pct)
             display_df["weekend_pct"]   = display_df["weekend_pct"].apply(fmt_pct)
             display_df["weekday_pct"]   = display_df["weekday_pct"].apply(fmt_pct)
-            display_df["has_campgrounds"] = display_df["has_campgrounds"].map(
-                {True: "Yes", False: "No"}
-            )
 
             st.dataframe(
                 display_df.rename(columns={
@@ -1378,7 +1375,6 @@ with tab7:
                     "pct_available":      "% Available",
                     "weekend_pct":        "Wknd %",
                     "weekday_pct":        "Wkday %",
-                    "has_campgrounds":    "On Rec.gov",
                     "n_facilities":       "Campgrounds",
                 }),
                 use_container_width=True,
