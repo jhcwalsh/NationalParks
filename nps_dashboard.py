@@ -256,6 +256,51 @@ def load_api_parks(api_key: str) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_nps_campgrounds(api_key: str) -> pd.DataFrame:
+    """
+    Fetch all NPS campgrounds and return per-park FCFS + reservable site counts.
+
+    Uses the NPS Developer API /campgrounds endpoint which includes
+    numberOfSitesFirstComeFirstServe and numberOfSitesReservable fields.
+    Filtered to the 63 national park unit codes.
+    """
+    if not api_key or not _CAMPSITES_AVAILABLE:
+        return pd.DataFrame(columns=["unit_code", "nps_fcfs_sites", "nps_reservable_sites"])
+
+    np_codes = {c.lower() for c in _nps_campsites.NATIONAL_PARKS}
+    raw = nps_get("/campgrounds", api_key)
+    if not raw:
+        return pd.DataFrame(columns=["unit_code", "nps_fcfs_sites", "nps_reservable_sites"])
+
+    rows: list[dict] = []
+    for cg in raw:
+        park_code = str(cg.get("parkCode", "")).lower()
+        if park_code not in np_codes:
+            continue
+        def _int(val: str) -> int:
+            try:
+                return int(val) if val else 0
+            except (ValueError, TypeError):
+                return 0
+        rows.append({
+            "unit_code":    park_code.upper(),
+            "cg_name":      cg.get("name", ""),
+            "fcfs":         _int(cg.get("numberOfSitesFirstComeFirstServe", 0)),
+            "reservable":   _int(cg.get("numberOfSitesReservable", 0)),
+        })
+
+    if not rows:
+        return pd.DataFrame(columns=["unit_code", "nps_fcfs_sites", "nps_reservable_sites"])
+
+    df = pd.DataFrame(rows)
+    return (
+        df.groupby("unit_code")
+          .agg(nps_fcfs_sites=("fcfs", "sum"), nps_reservable_sites=("reservable", "sum"))
+          .reset_index()
+    )
+
+
 @st.cache_data(ttl=300, show_spinner=False)
 def load_alerts(api_key: str) -> pd.DataFrame:
     raw = nps_get("/alerts", api_key)
@@ -1313,10 +1358,21 @@ with tab7:
     if camp_df.empty:
         st.stop()
 
+    # ── Merge NPS API campground counts (FCFS) ────────────────────────────────
+    # NPS Developer API /campgrounds has numberOfSitesFirstComeFirstServe.
+    # Only available when an NPS API key is present.
+    nps_cg_df = load_nps_campgrounds(api_key) if api_key else pd.DataFrame()
+    if not nps_cg_df.empty:
+        camp_df = camp_df.merge(nps_cg_df[["unit_code", "nps_fcfs_sites"]],
+                                on="unit_code", how="left")
+        camp_df["nps_fcfs_sites"] = camp_df["nps_fcfs_sites"].fillna(0).astype(int)
+    else:
+        camp_df["nps_fcfs_sites"] = 0
+
     # ── Summary metrics ───────────────────────────────────────────────────────
     parks_with_camps = camp_df[camp_df["has_campgrounds"].astype(bool)]
     total_reservable = int(parks_with_camps["n_reservable_sites"].sum())
-    total_facilities = int(parks_with_camps["n_facilities"].sum()) if "n_facilities" in parks_with_camps.columns else 0
+    total_fcfs       = int(camp_df["nps_fcfs_sites"].sum())
     total_avail      = int(parks_with_camps["avail_nights"].sum())
     avg_pct          = parks_with_camps["pct_available"].dropna().mean()
     fetched_ts       = camp_df["fetched_at"].max() if "fetched_at" in camp_df.columns else "—"
@@ -1324,9 +1380,10 @@ with tab7:
     mc1, mc2, mc3, mc4 = st.columns(4)
     for col, label, value, sub in [
         (mc1, "Total Reservable Sites",   f"{total_reservable:,}",
-         "across all 63 parks"),
-        (mc2, "Campground Facilities",    f"{total_facilities:,}",
-         "Recreation.gov campgrounds"),
+         "Recreation.gov reservable"),
+        (mc2, "Total FCFS Sites",
+         f"{total_fcfs:,}" if total_fcfs > 0 else "—",
+         "NPS API · walk-in / first-come" if total_fcfs > 0 else "Enter NPS key to load"),
         (mc3, f"Available Site-Nights ({t7_days}d)", f"{total_avail:,}",
          "reservable slots open"),
         (mc4, "Avg % Available",
@@ -1381,7 +1438,7 @@ with tab7:
                 unsafe_allow_html=True)
 
     display_df = parks_with_camps[
-        ["park_name", "n_reservable_sites",
+        ["park_name", "n_reservable_sites", "nps_fcfs_sites",
          "avail_nights", "pct_available", "weekend_pct", "weekday_pct",
          "n_facilities"]
     ].copy()
@@ -1392,11 +1449,16 @@ with tab7:
     display_df["pct_available"] = display_df["pct_available"].apply(fmt_pct)
     display_df["weekend_pct"]   = display_df["weekend_pct"].apply(fmt_pct)
     display_df["weekday_pct"]   = display_df["weekday_pct"].apply(fmt_pct)
+    # Show "—" for FCFS when NPS key not provided
+    display_df["nps_fcfs_sites"] = display_df["nps_fcfs_sites"].apply(
+        lambda v: str(int(v)) if total_fcfs > 0 else "—"
+    )
 
     st.dataframe(
         display_df.rename(columns={
             "park_name":          "Park",
-            "n_reservable_sites": "Reservable Sites",
+            "n_reservable_sites": "Reservable (Rec.gov)",
+            "nps_fcfs_sites":     "FCFS (NPS)",
             "avail_nights":       f"Avail Nights ({t7_days}d)",
             "pct_available":      "% Available",
             "weekend_pct":        "Wknd %",
@@ -1476,9 +1538,9 @@ with tab7:
     # ── Footer ────────────────────────────────────────────────────────────────
     st.markdown("---")
     st.caption(
-        f"Data fetched: {str(fetched_ts)[:19] if fetched_ts else '—'} UTC  ·  "
+        f"Availability fetched: {str(fetched_ts)[:19] if fetched_ts else '—'} UTC  ·  "
         f"30-day window  ·  "
-        "Source: [Recreation.gov](https://www.recreation.gov) / [RIDB](https://ridb.recreation.gov)  ·  "
-        "First-come-first-served (walk-in) sites are not included — they are managed at the park "
-        "and not listed in Recreation.gov's reservation database."
+        "Reservable site data: [Recreation.gov](https://www.recreation.gov) / [RIDB](https://ridb.recreation.gov)  ·  "
+        "FCFS site counts: [NPS Developer API](https://developer.nps.gov/api/v1) `/campgrounds` "
+        "(requires NPS API key in sidebar)"
     )
