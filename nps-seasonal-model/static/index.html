@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f4a37">
+  <title>National Parks Now</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+
+    <header class="hero">
+      <div class="hero-text">
+        <h1>National Parks Now</h1>
+        <p>National Park busyness tracker</p>
+      </div>
+      <div class="hero-badge" aria-hidden="true">★</div>
+    </header>
+
+    <section class="search">
+      <input
+        id="park-search"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Search a national park…"
+      >
+      <ul id="park-suggest" class="suggest" role="listbox" hidden></ul>
+    </section>
+
+    <section class="park-header">
+      <h2 id="park-name">Loading…</h2>
+      <p id="park-meta" class="park-meta"></p>
+
+      <div class="busyness-row">
+        <div id="busyness-circle" class="busyness-circle busyness-skeleton">
+          <span id="busyness-score">—</span>
+        </div>
+        <div class="busyness-text">
+          <h3 id="busyness-label">—</h3>
+          <p id="busyness-context"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cards">
+      <article class="card" id="card-aqi">
+        <p class="card-title">Air quality</p>
+        <p class="card-value" id="aqi-value">—</p>
+        <p class="card-sub" id="aqi-label">—</p>
+      </article>
+      <article class="card" id="card-weather">
+        <p class="card-title">Weather</p>
+        <p class="card-value" id="weather-value">—</p>
+        <p class="card-sub" id="weather-desc">—</p>
+      </article>
+      <article class="card" id="card-camping">
+        <p class="card-title">Camping</p>
+        <p class="card-value" id="camping-value">—</p>
+        <p class="card-sub" id="camping-desc">—</p>
+      </article>
+    </section>
+
+    <section id="alerts" class="alerts" hidden></section>
+
+    <section class="monthly">
+      <h4 class="section-label">Historical busyness by month</h4>
+      <div id="monthly-chart" class="monthly-chart"></div>
+    </section>
+
+    <footer class="tabs">
+      <button class="tab is-active" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="camping">Camping</button>
+      <button class="tab" data-tab="webcams">Webcams</button>
+      <button class="tab" data-tab="alerts">Alerts</button>
+      <button class="tab" data-tab="compare">Compare</button>
+    </footer>
+
+    <div id="tab-placeholder" class="tab-placeholder" hidden>
+      <p>Coming soon.</p>
+    </div>
+
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

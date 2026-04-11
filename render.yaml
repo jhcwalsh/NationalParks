@@ -10,3 +10,13 @@ services:
         sync: false
       - key: RIDB_API_KEY
         sync: false
+
+  - type: web
+    name: nps-mobile-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r nps-seasonal-model/requirements.txt && python nps-seasonal-model/src/ingest.py --seed-only
+    startCommand: uvicorn src.api:app --app-dir nps-seasonal-model --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: NPS_API_KEY
+        sync: false
