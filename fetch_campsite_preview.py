@@ -6,14 +6,23 @@ Features
 - Checkpointing: saves each park as it completes — safe to interrupt and restart
 - Resumes automatically from where it left off (skips already-fetched parks)
 - Prints a summary table on completion
+- Writes fetched_at / window_start / window_end columns so the dashboard can
+  display data freshness without making any live API calls
 
 Usage:
     python fetch_campsite_preview.py           # run / resume
     python fetch_campsite_preview.py --reset   # start fresh, ignoring checkpoint
+
+Workflow for Render deployment
+------------------------------
+1. Run this script locally (requires RIDB_API_KEY in .env or environment)
+2. Commit the resulting campsite_preview.csv to git
+3. Push — Render will serve the pre-fetched data from the CSV immediately
 """
 
 import sys
 import os
+from datetime import date, datetime
 from pathlib import Path
 
 # Load .env if present
@@ -34,6 +43,7 @@ from campsites import (
 
 CHECKPOINT = Path("campsite_preview.csv")
 OUT        = Path("campsite_preview.csv")
+WINDOW_DAYS = 30
 
 RIDB_KEY = os.getenv("RIDB_API_KEY", "")
 if not RIDB_KEY:
@@ -45,6 +55,12 @@ if reset and CHECKPOINT.exists():
     CHECKPOINT.unlink()
     print("Checkpoint cleared — starting fresh.\n")
 
+# Record when this run started (used for fetched_at on each row)
+RUN_STARTED_AT = datetime.utcnow().isoformat(timespec="seconds")
+WINDOW_START   = date.today().isoformat()
+WINDOW_END     = (date.today().replace(day=date.today().day) if False else
+                  date.fromordinal(date.today().toordinal() + WINDOW_DAYS)).isoformat()
+
 # ── Load checkpoint ────────────────────────────────────────────────────────────
 done: set[str] = set()
 rows: list[dict] = []
@@ -53,6 +69,12 @@ if CHECKPOINT.exists():
     existing = pd.read_csv(CHECKPOINT)
     done = set(existing["unit_code"].tolist())
     rows = existing.to_dict("records")
+    # Preserve fetched_at from checkpoint if it exists; otherwise backfill
+    if "fetched_at" not in existing.columns:
+        for r in rows:
+            r.setdefault("fetched_at",    RUN_STARTED_AT)
+            r.setdefault("window_start",  WINDOW_START)
+            r.setdefault("window_end",    WINDOW_END)
     print(f"Resuming from checkpoint — {len(done)} / {len(NATIONAL_PARKS)} parks already done.\n")
 
 # ── Discover campground facility IDs ──────────────────────────────────────────
@@ -65,7 +87,7 @@ print(f"  {len(park_map)} parks with campgrounds  "
 remaining = [c for c in NATIONAL_PARKS if c not in done]
 total     = len(NATIONAL_PARKS)
 
-print(f"Step 2/2 — Fetching 30-day availability ({len(remaining)} parks remaining)…")
+print(f"Step 2/2 — Fetching {WINDOW_DAYS}-day availability ({len(remaining)} parks remaining)…")
 print("  Interrupt at any time with Ctrl+C — progress is saved automatically.\n")
 
 for idx, unit_code in enumerate(remaining, start=len(done) + 1):
@@ -77,7 +99,10 @@ for idx, unit_code in enumerate(remaining, start=len(done) + 1):
 
     if facility_ids:
         try:
-            ps = fetch_park_campsite_stats(unit_code, facility_ids, fac_names, site_counts, window_days=30)
+            ps = fetch_park_campsite_stats(
+                unit_code, facility_ids, fac_names, site_counts,
+                window_days=WINDOW_DAYS,
+            )
             rows.append({
                 "unit_code":          unit_code,
                 "park_name":          park_name,
@@ -90,6 +115,9 @@ for idx, unit_code in enumerate(remaining, start=len(done) + 1):
                 "weekday_pct":        ps.weekday_pct,
                 "has_campgrounds":    True,
                 "n_facilities":       len(ps.facilities),
+                "fetched_at":         ps.fetched_at.isoformat(timespec="seconds"),
+                "window_start":       ps.window_start.isoformat(),
+                "window_end":         ps.window_end.isoformat(),
             })
         except KeyboardInterrupt:
             print("\n\nInterrupted — saving checkpoint…")
@@ -104,6 +132,9 @@ for idx, unit_code in enumerate(remaining, start=len(done) + 1):
                 "n_reservable_sites": 0, "n_fcfs_sites": 0,
                 "avail_nights": 0, "total_nights": 0,
                 "pct_available": None, "weekend_pct": None, "weekday_pct": None,
+                "fetched_at":    RUN_STARTED_AT,
+                "window_start":  WINDOW_START,
+                "window_end":    WINDOW_END,
             })
     else:
         rows.append({
@@ -112,6 +143,9 @@ for idx, unit_code in enumerate(remaining, start=len(done) + 1):
             "n_reservable_sites": 0, "n_fcfs_sites": 0,
             "avail_nights": 0, "total_nights": 0,
             "pct_available": None, "weekend_pct": None, "weekday_pct": None,
+            "fetched_at":    RUN_STARTED_AT,
+            "window_start":  WINDOW_START,
+            "window_end":    WINDOW_END,
         })
 
     # Save after every park
@@ -134,3 +168,5 @@ print("\n" + "=" * 80)
 no_camps = df[~df["has_campgrounds"]]["park_name"].tolist()
 print(f"\n{len(no_camps)} parks with no Recreation.gov campgrounds:")
 print(", ".join(no_camps))
+
+print(f"\nNext step: commit campsite_preview.csv to git, then push to deploy on Render.")

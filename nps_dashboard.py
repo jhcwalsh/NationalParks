@@ -170,7 +170,8 @@ st.markdown("""
 BASE_URL = "https://developer.nps.gov/api/v1"
 LIMIT    = 500
 
-DB_PATH = Path(__file__).parent / "nps-seasonal-model" / "data" / "nps.db"
+DB_PATH      = Path(__file__).parent / "nps-seasonal-model" / "data" / "nps.db"
+PREVIEW_CSV  = Path(__file__).parent / "campsite_preview.csv"
 
 PLOTLY_LAYOUT = dict(
     paper_bgcolor="#0f1923",
@@ -346,6 +347,17 @@ def score_color(score: float) -> str:
 # ══════════════════════════════════════════════════════════════════════════════
 # Campsite availability helpers  (tab 7)
 # ══════════════════════════════════════════════════════════════════════════════
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_campsite_preview_csv() -> pd.DataFrame:
+    """Load the pre-fetched campsite_preview.csv committed to the repository."""
+    if not PREVIEW_CSV.exists():
+        return pd.DataFrame()
+    df = pd.read_csv(PREVIEW_CSV)
+    if "has_campgrounds" in df.columns:
+        df["has_campgrounds"] = df["has_campgrounds"].astype(bool)
+    return df
+
 
 @st.cache_data(ttl=86400, show_spinner=False)
 def load_park_facility_map(ridb_api_key: str) -> tuple[dict, dict, dict]:
@@ -1242,218 +1254,232 @@ with tab7:
         )
         st.stop()
 
-    ridb_key = st.session_state.get("ridb_api_key", "")
-    if not ridb_key:
-        st.info(
-            "**Enter your Recreation.gov (RIDB) API key in the sidebar** to load "
-            "campsite availability data for all 63 national parks.  \n\n"
-            "Get a free key at [ridb.recreation.gov](https://ridb.recreation.gov).  \n\n"
-            "The key is used only to discover which campgrounds exist at each park "
-            "(RIDB metadata API).  Availability data is fetched from the public "
-            "Recreation.gov availability endpoint without authentication."
-        )
-    else:
-        # ── Controls ──────────────────────────────────────────────────────────
-        col_d, col_n, col_btn = st.columns([2, 1, 1])
-        with col_d:
-            t7_start = st.date_input(
-                "Window start", value=date.today(),
-                min_value=date.today(), key="t7_start",
+    # ── Determine data source ──────────────────────────────────────────────────
+    # Priority: 1) live refresh via RIDB key  2) pre-fetched CSV in repo
+    ridb_key   = st.session_state.get("ridb_api_key", "")
+    preview_df = load_campsite_preview_csv()
+    has_preview = not preview_df.empty
+
+    # ── Controls row ──────────────────────────────────────────────────────────
+    col_info, col_btn = st.columns([5, 1])
+    with col_info:
+        if has_preview and "fetched_at" in preview_df.columns:
+            fetched_raw = preview_df["fetched_at"].max()
+            window_raw  = preview_df.get("window_start", pd.Series()).iloc[0] if "window_start" in preview_df.columns else "—"
+            st.caption(
+                f"Showing pre-fetched data · fetched {str(fetched_raw)[:19]} UTC · "
+                f"window start {window_raw}  ·  "
+                "To refresh: enter your RIDB API key in the sidebar and click **Refresh Live Data**."
             )
-        with col_n:
-            t7_days = st.selectbox("Days ahead", [7, 14, 30], index=2, key="t7_days")
-        with col_btn:
-            st.markdown("&nbsp;", unsafe_allow_html=True)
-            if st.button("Refresh", key="t7_refresh"):
+        elif not has_preview and not ridb_key:
+            st.info(
+                "No pre-fetched data found.  \n\n"
+                "**Option A** — Run `fetch_campsite_preview.py` locally, commit "
+                "`campsite_preview.csv`, and push.  \n"
+                "**Option B** — Enter your [RIDB API key](https://ridb.recreation.gov) "
+                "in the sidebar to fetch live data now."
+            )
+    with col_btn:
+        if ridb_key:
+            if st.button("Refresh Live Data", key="t7_refresh"):
                 load_campsite_availability.clear()
                 load_park_facility_map.clear()
+                load_campsite_preview_csv.clear()
 
-        # ── Load data ─────────────────────────────────────────────────────────
+    # ── Load data: live fetch or fall back to pre-fetched CSV ─────────────────
+    if ridb_key:
+        t7_days = 30
         with st.spinner(
             "Fetching campsite availability for 63 national parks…  "
             "First load may take 1–2 minutes."
         ):
             camp_df = load_campsite_availability(
                 ridb_key,
-                t7_start.isoformat(),
+                date.today().isoformat(),
                 t7_days,
                 str(DB_PATH),
             )
-
         if camp_df.empty:
-            st.warning(
-                "No campsite data returned.  "
-                "Check your RIDB API key and try refreshing."
+            st.warning("No live data returned. Check your RIDB API key.")
+            camp_df = preview_df   # fall back to pre-fetched if available
+    else:
+        camp_df = preview_df
+        t7_days = int(preview_df["window_start"].apply(
+            lambda s: (pd.to_datetime(preview_df["window_end"].iloc[0]) -
+                       pd.to_datetime(preview_df["window_start"].iloc[0])).days
+        ).iloc[0]) if (has_preview and "window_end" in preview_df.columns
+                       and "window_start" in preview_df.columns) else 30
+
+    if camp_df.empty:
+        st.stop()
+
+    # ── Summary metrics ───────────────────────────────────────────────────────
+    parks_with_camps = camp_df[camp_df["has_campgrounds"].astype(bool)]
+    total_reservable = int(parks_with_camps["n_reservable_sites"].sum())
+    total_fcfs       = int(parks_with_camps["n_fcfs_sites"].sum())
+    total_avail      = int(parks_with_camps["avail_nights"].sum())
+    avg_pct          = parks_with_camps["pct_available"].dropna().mean()
+    fetched_ts       = camp_df["fetched_at"].max() if "fetched_at" in camp_df.columns else "—"
+
+    mc1, mc2, mc3, mc4 = st.columns(4)
+    for col, label, value, sub in [
+        (mc1, "Total Reservable Sites",   f"{total_reservable:,}",
+         "across all 63 parks"),
+        (mc2, "Total FCFS Sites",         f"{total_fcfs:,}",
+         "first-come-first-served"),
+        (mc3, f"Available Site-Nights ({t7_days}d)", f"{total_avail:,}",
+         "reservable slots open"),
+        (mc4, "Avg % Available",
+         f"{avg_pct:.1f}%" if not pd.isna(avg_pct) else "—",
+         "parks with campgrounds"),
+    ]:
+        with col:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="label">{label}</div>
+                <div class="value">{value}</div>
+                <div class="sub">{sub}</div>
+            </div>""", unsafe_allow_html=True)
+
+    # ── Availability bar chart ─────────────────────────────────────────────────
+    st.markdown('<div class="section-header">Availability by Park</div>',
+                unsafe_allow_html=True)
+
+    chart_df = parks_with_camps.copy()
+    chart_df["pct_display"] = chart_df["pct_available"].fillna(0)
+    chart_df = chart_df.sort_values("pct_display", ascending=True)
+
+    fig_avail = px.bar(
+        chart_df,
+        x="pct_display",
+        y="park_name",
+        orientation="h",
+        color="pct_display",
+        color_continuous_scale=[
+            [0.0, "#c0392b"],
+            [0.2, "#f39c12"],
+            [0.5, "#27ae60"],
+            [1.0, "#1abc9c"],
+        ],
+        range_color=[0, 100],
+        labels={"pct_display": "% Available", "park_name": "Park"},
+        template="plotly_dark",
+    )
+    fig_avail.update_layout(
+        **PLOTLY_LAYOUT,
+        height=max(400, len(chart_df) * 20 + 80),
+        xaxis=dict(range=[0, 100], title="% Available",
+                   ticksuffix="%", gridcolor="#1e3448",
+                   tickfont=dict(color="#7a9bbb")),
+        yaxis=dict(tickfont=dict(color="#7a9bbb"), title=""),
+        coloraxis_showscale=False,
+    )
+    st.plotly_chart(fig_avail, use_container_width=True)
+
+    # ── Data table ────────────────────────────────────────────────────────────
+    st.markdown('<div class="section-header">Park Breakdown</div>',
+                unsafe_allow_html=True)
+
+    display_df = parks_with_camps[
+        ["park_name", "n_reservable_sites", "n_fcfs_sites",
+         "avail_nights", "pct_available", "weekend_pct", "weekday_pct",
+         "n_facilities"]
+    ].copy()
+
+    def fmt_pct(v):
+        return f"{v:.1f}%" if pd.notna(v) else "—"
+
+    display_df["pct_available"] = display_df["pct_available"].apply(fmt_pct)
+    display_df["weekend_pct"]   = display_df["weekend_pct"].apply(fmt_pct)
+    display_df["weekday_pct"]   = display_df["weekday_pct"].apply(fmt_pct)
+
+    st.dataframe(
+        display_df.rename(columns={
+            "park_name":          "Park",
+            "n_reservable_sites": "Reservable Sites",
+            "n_fcfs_sites":       "FCFS Sites",
+            "avail_nights":       f"Avail Nights ({t7_days}d)",
+            "pct_available":      "% Available",
+            "weekend_pct":        "Wknd %",
+            "weekday_pct":        "Wkday %",
+            "n_facilities":       "Campgrounds",
+        }),
+        use_container_width=True,
+        hide_index=True,
+        height=420,
+    )
+
+    # ── Parks not on Recreation.gov ───────────────────────────────────────────
+    no_camp = camp_df[~camp_df["has_campgrounds"].astype(bool)]
+    if not no_camp.empty:
+        with st.expander(
+            f"{len(no_camp)} parks with no Recreation.gov campgrounds"
+        ):
+            st.markdown(
+                "These parks either have no reservable camping, use a "
+                "different booking system (lottery, permit, walk-in), or "
+                "were not matched in the RIDB facility discovery.  "
+                "Check the park's website for current camping options."
             )
-        else:
-            # ── Summary metrics ───────────────────────────────────────────────
-            parks_with_camps = camp_df[camp_df["has_campgrounds"].astype(bool)]
-            total_reservable = int(parks_with_camps["n_reservable_sites"].sum())
-            total_fcfs       = int(parks_with_camps["n_fcfs_sites"].sum())
-            total_avail      = int(parks_with_camps["avail_nights"].sum())
-            avg_pct          = parks_with_camps["pct_available"].dropna().mean()
-            fetched_ts       = camp_df["fetched_at"].max() if "fetched_at" in camp_df.columns else "—"
-
-            mc1, mc2, mc3, mc4 = st.columns(4)
-            for col, label, value, sub in [
-                (mc1, "Total Reservable Sites",   f"{total_reservable:,}",
-                 "across all 63 parks"),
-                (mc2, "Total FCFS Sites",         f"{total_fcfs:,}",
-                 "first-come-first-served"),
-                (mc3, f"Available Site-Nights ({t7_days}d)", f"{total_avail:,}",
-                 "reservable slots open"),
-                (mc4, "Avg % Available",
-                 f"{avg_pct:.1f}%" if not pd.isna(avg_pct) else "—",
-                 "parks with campgrounds"),
-            ]:
-                with col:
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <div class="label">{label}</div>
-                        <div class="value">{value}</div>
-                        <div class="sub">{sub}</div>
-                    </div>""", unsafe_allow_html=True)
-
-            # ── Availability bar chart ────────────────────────────────────────
-            st.markdown('<div class="section-header">Availability by Park</div>',
-                        unsafe_allow_html=True)
-
-            chart_df = parks_with_camps.copy()
-            chart_df["pct_display"] = chart_df["pct_available"].fillna(0)
-            chart_df["color"] = chart_df["pct_available"].apply(_avail_color)
-            chart_df = chart_df.sort_values("pct_display", ascending=True)
-
-            fig_avail = px.bar(
-                chart_df,
-                x="pct_display",
-                y="park_name",
-                orientation="h",
-                color="pct_display",
-                color_continuous_scale=[
-                    [0.0, "#c0392b"],
-                    [0.2, "#f39c12"],
-                    [0.5, "#27ae60"],
-                    [1.0, "#1abc9c"],
-                ],
-                range_color=[0, 100],
-                labels={"pct_display": "% Available", "park_name": "Park"},
-                template="plotly_dark",
-            )
-            fig_avail.update_layout(
-                **PLOTLY_LAYOUT,
-                height=max(400, len(chart_df) * 20 + 80),
-                xaxis=dict(range=[0, 100], title="% Available",
-                           ticksuffix="%", gridcolor="#1e3448",
-                           tickfont=dict(color="#7a9bbb")),
-                yaxis=dict(tickfont=dict(color="#7a9bbb"), title=""),
-                coloraxis_showscale=False,
-            )
-            st.plotly_chart(fig_avail, use_container_width=True)
-
-            # ── Data table ────────────────────────────────────────────────────
-            st.markdown('<div class="section-header">Park Breakdown</div>',
-                        unsafe_allow_html=True)
-
-            display_df = parks_with_camps[
-                ["park_name", "n_reservable_sites", "n_fcfs_sites",
-                 "avail_nights", "pct_available", "weekend_pct", "weekday_pct",
-                 "n_facilities"]
-            ].copy()
-
-            def fmt_pct(v):
-                return f"{v:.1f}%" if pd.notna(v) else "—"
-
-            display_df["pct_available"] = display_df["pct_available"].apply(fmt_pct)
-            display_df["weekend_pct"]   = display_df["weekend_pct"].apply(fmt_pct)
-            display_df["weekday_pct"]   = display_df["weekday_pct"].apply(fmt_pct)
-
             st.dataframe(
-                display_df.rename(columns={
-                    "park_name":          "Park",
-                    "n_reservable_sites": "Reservable Sites",
-                    "n_fcfs_sites":       "FCFS Sites",
-                    "avail_nights":       f"Avail Nights ({t7_days}d)",
-                    "pct_available":      "% Available",
-                    "weekend_pct":        "Wknd %",
-                    "weekday_pct":        "Wkday %",
-                    "n_facilities":       "Campgrounds",
-                }),
+                no_camp[["park_name"]].rename(columns={"park_name": "Park"}),
                 use_container_width=True,
                 hide_index=True,
-                height=420,
             )
 
-            # ── Parks not on Recreation.gov ───────────────────────────────────
-            no_camp = camp_df[~camp_df["has_campgrounds"].astype(bool)]
-            if not no_camp.empty:
-                with st.expander(
-                    f"{len(no_camp)} parks with no Recreation.gov campgrounds"
-                ):
-                    st.markdown(
-                        "These parks either have no reservable camping, use a "
-                        "different booking system (lottery, permit, walk-in), or "
-                        "were not matched in the RIDB facility discovery.  "
-                        "Check the park's website for current camping options."
-                    )
-                    st.dataframe(
-                        no_camp[["park_name"]].rename(columns={"park_name": "Park"}),
-                        use_container_width=True,
-                        hide_index=True,
-                    )
-
-            # ── Per-campground drill-down ─────────────────────────────────────
-            st.markdown("---")
-            st.markdown("**Per-campground detail**")
-            drill_options = {
-                row["park_name"]: row["unit_code"]
-                for _, row in parks_with_camps.sort_values("park_name").iterrows()
-            }
-            if drill_options:
-                drill_label = st.selectbox(
-                    "Select park", list(drill_options.keys()), key="t7_drill"
-                )
-                drill_uc = drill_options[drill_label]
-                if st.button("Load campground detail →", key="t7_drill_btn"):
-                    fac_map, fac_names, fac_site_counts = load_park_facility_map(ridb_key)
-                    fac_ids = fac_map.get(drill_uc, [])
-                    if not fac_ids:
-                        st.info("No facility IDs found for this park.")
-                    else:
-                        with st.spinner(f"Fetching per-campground data for {drill_label}…"):
-                            ps = _nps_campsites.fetch_park_campsite_stats(
-                                drill_uc, fac_ids, fac_names, fac_site_counts,
-                                window_start=t7_start, window_days=t7_days,
-                            )
-                        fac_rows = []
-                        for f in ps.facilities:
-                            tot = f.total_reservable_nights
-                            pct = round(100 * f.available_nights / tot, 1) if tot else None
-                            fac_rows.append({
-                                "Campground":      f.facility_name,
-                                "Reservable Sites": f.n_reservable,
-                                "FCFS Sites":       f.n_fcfs,
-                                "Avail Nights":     f.available_nights,
-                                "% Available":      f"{pct:.1f}%" if pct is not None else "—",
-                                "Wknd %": (
-                                    f"{100*f.weekend_available/f.weekend_total:.1f}%"
-                                    if f.weekend_total else "—"
-                                ),
-                                "Wkday %": (
-                                    f"{100*f.weekday_available/f.weekday_total:.1f}%"
-                                    if f.weekday_total else "—"
-                                ),
-                            })
-                        st.dataframe(
-                            pd.DataFrame(fac_rows),
-                            use_container_width=True, hide_index=True,
+    # ── Per-campground drill-down (requires live RIDB key) ────────────────────
+    if ridb_key:
+        st.markdown("---")
+        st.markdown("**Per-campground detail**")
+        drill_options = {
+            row["park_name"]: row["unit_code"]
+            for _, row in parks_with_camps.sort_values("park_name").iterrows()
+        }
+        if drill_options:
+            drill_label = st.selectbox(
+                "Select park", list(drill_options.keys()), key="t7_drill"
+            )
+            drill_uc = drill_options[drill_label]
+            if st.button("Load campground detail →", key="t7_drill_btn"):
+                fac_map, fac_names, fac_site_counts = load_park_facility_map(ridb_key)
+                fac_ids = fac_map.get(drill_uc, [])
+                if not fac_ids:
+                    st.info("No facility IDs found for this park.")
+                else:
+                    with st.spinner(f"Fetching per-campground data for {drill_label}…"):
+                        ps = _nps_campsites.fetch_park_campsite_stats(
+                            drill_uc, fac_ids, fac_names, fac_site_counts,
+                            window_start=date.today(), window_days=t7_days,
                         )
+                    fac_rows = []
+                    for f in ps.facilities:
+                        tot = f.total_reservable_nights
+                        pct = round(100 * f.available_nights / tot, 1) if tot else None
+                        fac_rows.append({
+                            "Campground":       f.facility_name,
+                            "Reservable Sites": f.n_reservable,
+                            "FCFS Sites":       f.n_fcfs,
+                            "Avail Nights":     f.available_nights,
+                            "% Available":      f"{pct:.1f}%" if pct is not None else "—",
+                            "Wknd %": (
+                                f"{100*f.weekend_available/f.weekend_total:.1f}%"
+                                if f.weekend_total else "—"
+                            ),
+                            "Wkday %": (
+                                f"{100*f.weekday_available/f.weekday_total:.1f}%"
+                                if f.weekday_total else "—"
+                            ),
+                        })
+                    st.dataframe(
+                        pd.DataFrame(fac_rows),
+                        use_container_width=True, hide_index=True,
+                    )
 
-            # ── Footer ────────────────────────────────────────────────────────
-            st.markdown("---")
-            st.caption(
-                f"Data fetched: {fetched_ts[:19] if fetched_ts else '—'} UTC  ·  "
-                f"Window: {t7_start} + {t7_days} days  ·  "
-                "Cache refreshes every hour  ·  "
-                "Source: [Recreation.gov](https://www.recreation.gov) / "
-                "[RIDB](https://ridb.recreation.gov)"
-            )
+    # ── Footer ────────────────────────────────────────────────────────────────
+    st.markdown("---")
+    st.caption(
+        f"Data fetched: {str(fetched_ts)[:19] if fetched_ts else '—'} UTC  ·  "
+        f"30-day window  ·  "
+        "Source: [Recreation.gov](https://www.recreation.gov) / "
+        "[RIDB](https://ridb.recreation.gov)"
+    )
