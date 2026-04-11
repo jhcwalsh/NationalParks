@@ -1327,16 +1327,21 @@ with tab7:
     with col_btn:
         if ridb_key:
             if st.button("Refresh Live Data", key="t7_refresh"):
+                st.session_state["t7_live_fetch"] = True
                 load_campsite_availability.clear()
                 load_park_facility_map.clear()
                 load_campsite_preview_csv.clear()
 
-    # ── Load data: live fetch or fall back to pre-fetched CSV ─────────────────
-    if ridb_key:
+    # ── Load data: CSV by default; live fetch only on explicit Refresh ─────────
+    # The RIDB key may be set in the environment (e.g. on Render) but that should
+    # not trigger background API calls — only the Refresh button should.
+    do_live_fetch = ridb_key and st.session_state.get("t7_live_fetch", False)
+
+    if do_live_fetch:
         t7_days = 30
         with st.spinner(
             "Fetching campsite availability for 63 national parks…  "
-            "First load may take 1–2 minutes."
+            "This may take 1–2 minutes."
         ):
             camp_df = load_campsite_availability(
                 ridb_key,
@@ -1346,14 +1351,14 @@ with tab7:
             )
         if camp_df.empty:
             st.warning("No live data returned. Check your RIDB API key.")
-            camp_df = preview_df   # fall back to pre-fetched if available
+            camp_df = preview_df
     else:
         camp_df = preview_df
-        t7_days = int(preview_df["window_start"].apply(
-            lambda s: (pd.to_datetime(preview_df["window_end"].iloc[0]) -
-                       pd.to_datetime(preview_df["window_start"].iloc[0])).days
-        ).iloc[0]) if (has_preview and "window_end" in preview_df.columns
-                       and "window_start" in preview_df.columns) else 30
+        t7_days = int(
+            (pd.to_datetime(preview_df["window_end"].iloc[0]) -
+             pd.to_datetime(preview_df["window_start"].iloc[0])).days
+        ) if (has_preview and "window_end" in preview_df.columns
+              and "window_start" in preview_df.columns) else 30
 
     if camp_df.empty:
         st.stop()
