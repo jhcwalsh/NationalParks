@@ -511,6 +511,115 @@ def _wind_dir(deg: float) -> str:
     return ["N","NE","E","SE","S","SW","W","NW"][round(float(deg) / 45) % 8]
 
 
+# Coastal parks → nearest NOAA tide station (id, description)
+TIDE_STATIONS: dict[str, tuple[str, str]] = {
+    "ACAD": ("8413320", "Bar Harbor, ME"),
+    "BISC": ("8723214", "Virginia Key, FL"),
+    "CHIS": ("9411340", "Santa Barbara, CA"),
+    "DRTO": ("8724580", "Key West, FL"),
+    "EVER": ("8723970", "Flamingo, FL"),
+    "GLBA": ("9452210", "Juneau, AK"),
+    "KATM": ("9457292", "Kodiak, AK"),
+    "KEFJ": ("9455920", "Seward, AK"),
+    "OLYM": ("9444090", "Port Angeles, WA"),
+    "REDW": ("9419750", "Crescent City, CA"),
+    "VIIS": ("9751401", "Charlotte Amalie, USVI"),
+    "NPSA": ("1770000", "Pago Pago, American Samoa"),
+}
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def load_usgs_gauges(lat: float, lon: float) -> list:
+    """Active USGS stream gauges within ~40 miles of the park (no key needed)."""
+    try:
+        r = requests.get(
+            "https://waterservices.usgs.gov/nwis/iv/",
+            params={
+                "format": "json",
+                "bBox": f"{lon-0.6:.4f},{lat-0.6:.4f},{lon+0.6:.4f},{lat+0.6:.4f}",
+                "parameterCd": "00060,00065",
+                "siteType": "ST",
+                "siteStatus": "active",
+            },
+            timeout=15,
+        )
+        r.raise_for_status()
+        ts_list = r.json().get("value", {}).get("timeSeries", [])
+        gauges: dict[str, dict] = {}
+        for ts in ts_list:
+            site      = ts.get("sourceInfo", {})
+            site_code = (site.get("siteCode") or [{}])[0].get("value", "")
+            site_name = site.get("siteName", "Unknown gauge")
+            var_code  = (ts.get("variable", {}).get("variableCode") or [{}])[0].get("value", "")
+            values    = (ts.get("values") or [{}])[0].get("value", [])
+            latest    = values[-1].get("value", "") if values else ""
+            unit      = ts.get("variable", {}).get("unit", {}).get("unitAbbreviation", "")
+            if site_code not in gauges:
+                gauges[site_code] = {"name": site_name.title(), "code": site_code}
+            try:
+                fval = float(latest)
+                if fval > -999000:
+                    if var_code == "00060":
+                        gauges[site_code]["discharge"] = f"{fval:,.0f} {unit}"
+                    elif var_code == "00065":
+                        gauges[site_code]["gage_height"] = f"{fval:.1f} {unit}"
+            except (ValueError, TypeError):
+                pass
+        return list(gauges.values())[:5]
+    except Exception:
+        return []
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_noaa_tides(station_id: str) -> list:
+    """Next 48 h high/low tide predictions from NOAA (no key needed)."""
+    from datetime import datetime as _dt
+    try:
+        r = requests.get(
+            "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+            params={
+                "product":    "predictions",
+                "station":    station_id,
+                "datum":      "MLLW",
+                "time_zone":  "lst_ldt",
+                "interval":   "hilo",
+                "units":      "english",
+                "format":     "json",
+                "begin_date": _dt.utcnow().strftime("%Y%m%d"),
+                "range":      48,
+            },
+            timeout=10,
+        )
+        r.raise_for_status()
+        return r.json().get("predictions", [])
+    except Exception:
+        return []
+
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def load_active_fires(lat: float, lon: float) -> list:
+    """Active wildfire perimeters within ~70 miles from NIFC (no key needed)."""
+    try:
+        r = requests.get(
+            "https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/"
+            "Active_Fires/FeatureServer/0/query",
+            params={
+                "where":          "1=1",
+                "outFields":      "IncidentName,GISAcres,PercentContained,ModifiedOnDateTime_dt",
+                "geometry":       f"{lon-1:.4f},{lat-1:.4f},{lon+1:.4f},{lat+1:.4f}",
+                "geometryType":   "esriGeometryEnvelope",
+                "spatialRel":     "esriSpatialRelIntersects",
+                "f":              "json",
+                "resultRecordCount": 10,
+            },
+            timeout=15,
+        )
+        r.raise_for_status()
+        return [f.get("attributes", {}) for f in r.json().get("features", [])]
+    except Exception:
+        return []
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Campsite availability helpers  (tab 7)
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1700,10 +1809,16 @@ with tab8:
         st.warning(f"No coordinates available for {t8_park_label}.")
         st.stop()
 
-    # Fetch all data in parallel (Streamlit runs them concurrently via cache)
+    # Fetch all data (cached functions — warm hits are instant)
     with st.spinner("Loading conditions…"):
-        wx   = load_weather(lat, lon)
-        aqi  = load_aqi(lat, lon)
+        wx      = load_weather(lat, lon)
+        aqi     = load_aqi(lat, lon)
+        fires   = load_active_fires(lat, lon)
+        gauges  = load_usgs_gauges(lat, lon)
+        tides   = (
+            load_noaa_tides(TIDE_STATIONS[t8_uc][0])
+            if t8_uc in TIDE_STATIONS else []
+        )
 
     t8_alerts  = (
         alerts_df[alerts_df["parkCode"].str.lower() == t8_uc.lower()]
@@ -1825,6 +1940,112 @@ with tab8:
 
     st.markdown("---")
 
+    # ── Sunrise / Sunset ─────────────────────────────────────────────────────
+    if wx:
+        daily = wx.get("daily", {})
+        sr_list = daily.get("sunrise") or []
+        ss_list = daily.get("sunset")  or []
+        if sr_list and ss_list:
+            sr_raw = sr_list[0]   # e.g. "2026-04-11T06:23"
+            ss_raw = ss_list[0]
+            try:
+                sr_str = pd.to_datetime(sr_raw).strftime("%-I:%M %p")
+                ss_str = pd.to_datetime(ss_raw).strftime("%-I:%M %p")
+                # Day length
+                diff_m = int((pd.to_datetime(ss_raw) - pd.to_datetime(sr_raw)).total_seconds() / 60)
+                dl_str = f"{diff_m // 60}h {diff_m % 60}m"
+            except Exception:
+                sr_str = ss_str = dl_str = "—"
+            sd1, sd2, sd3 = st.columns(3)
+            for col, lbl, val in [
+                (sd1, "Sunrise",    f"🌅 {sr_str}"),
+                (sd2, "Sunset",     f"🌇 {ss_str}"),
+                (sd3, "Day Length", f"⏱ {dl_str}"),
+            ]:
+                with col:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <div class="label">{lbl}</div>
+                        <div class="value" style="font-size:20px">{val}</div>
+                    </div>""", unsafe_allow_html=True)
+            st.markdown("---")
+
+    # ── Active Wildfires ──────────────────────────────────────────────────────
+    st.markdown('<div class="section-header">Active Wildfires (within ~70 miles)</div>', unsafe_allow_html=True)
+    if not fires:
+        st.success("No active wildfires reported within ~70 miles.")
+    else:
+        for fire in fires:
+            name       = fire.get("IncidentName", "Unknown Fire")
+            acres      = fire.get("GISAcres")
+            contained  = fire.get("PercentContained")
+            updated    = fire.get("ModifiedOnDateTime_dt", "")
+            acres_str  = f"{acres:,.0f} acres" if acres else "size unknown"
+            cont_str   = f"{contained:.0f}% contained" if contained is not None else "containment unknown"
+            upd_str    = ""
+            if updated:
+                try:
+                    upd_str = pd.to_datetime(updated, unit="ms").strftime("%b %-d")
+                except Exception:
+                    pass
+            cont_color = "#27ae60" if (contained or 0) >= 75 else "#e67e22" if (contained or 0) >= 30 else "#c0392b"
+            st.markdown(f"""
+            <div class="detail-card" style="border-left-color:{cont_color}; margin-bottom:8px;">
+                <strong>🔥 {name}</strong>
+                <span style="color:#7a9bbb;font-size:12px;margin-left:12px">
+                    {acres_str}  ·  {cont_str}{("  ·  Updated " + upd_str) if upd_str else ""}
+                </span>
+            </div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── Water Levels ─────────────────────────────────────────────────────────
+    st.markdown('<div class="section-header">Water Levels</div>', unsafe_allow_html=True)
+
+    if gauges:
+        st.markdown("**Stream Gauges (USGS)**")
+        g_cols = st.columns(min(len(gauges), 3))
+        for i, gauge in enumerate(gauges[:3]):
+            with g_cols[i]:
+                discharge    = gauge.get("discharge", "")
+                gage_height  = gauge.get("gage_height", "")
+                reading_str  = discharge or gage_height or "—"
+                label_str    = "Flow" if discharge else "Stage"
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="label">{gauge["name"][:30]}</div>
+                    <div class="value" style="font-size:16px">{reading_str}</div>
+                    <div class="sub">{label_str} · USGS {gauge["code"]}</div>
+                </div>""", unsafe_allow_html=True)
+    else:
+        st.caption("No USGS stream gauges found within ~40 miles.")
+
+    # Tides — only for coastal parks
+    if t8_uc in TIDE_STATIONS and tides:
+        station_id, station_name = TIDE_STATIONS[t8_uc]
+        if tides:
+            st.markdown(f"**Tides — {station_name} (NOAA)**")
+            tide_cols = st.columns(min(len(tides), 4))
+            for i, tide in enumerate(tides[:4]):
+                t_time = tide.get("t", "")
+                t_type = tide.get("type", "")
+                t_ht   = tide.get("v", "")
+                type_lbl  = "High Tide" if t_type == "H" else "Low Tide"
+                type_emoji = "🌊" if t_type == "H" else "〰️"
+                try:
+                    fmt_time = pd.to_datetime(t_time).strftime("%a %-I:%M %p")
+                except Exception:
+                    fmt_time = t_time
+                with tide_cols[i]:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <div class="label">{type_emoji} {type_lbl}</div>
+                        <div class="value" style="font-size:16px">{t_ht} ft</div>
+                        <div class="sub">{fmt_time}</div>
+                    </div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
     # ── Webcams ───────────────────────────────────────────────────────────────
     if api_key and webcams:
         st.markdown('<div class="section-header">Webcams</div>', unsafe_allow_html=True)
@@ -1874,7 +2095,10 @@ with tab8:
     # ── Footer ────────────────────────────────────────────────────────────────
     st.markdown("---")
     st.caption(
-        "Weather & AQI: [Open-Meteo](https://open-meteo.com) (refreshes every 30 min, no API key needed)  ·  "
+        "Weather & AQI: [Open-Meteo](https://open-meteo.com) (30 min cache)  ·  "
+        "Stream gauges: [USGS Water Services](https://waterservices.usgs.gov) (15 min cache)  ·  "
+        "Tides: [NOAA Tides & Currents](https://tidesandcurrents.noaa.gov) (1 h cache)  ·  "
+        "Wildfires: [NIFC ArcGIS](https://www.nifc.gov) (30 min cache)  ·  "
         "Alerts & Events: [NPS Developer API](https://developer.nps.gov/api/v1)  ·  "
         f"Coords: {lat:.2f}°, {lon:.2f}°"
     )
