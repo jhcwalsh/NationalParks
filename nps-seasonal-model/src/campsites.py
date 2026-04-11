@@ -22,6 +22,7 @@ Typical usage
 from __future__ import annotations
 
 import logging
+import random
 import sqlite3
 import time
 from dataclasses import dataclass, field
@@ -38,8 +39,8 @@ logger = logging.getLogger(__name__)
 RIDB_BASE        = "https://ridb.recreation.gov/api/v1"
 AVAIL_BASE       = "https://www.recreation.gov/api/camps/availability/campground"
 NPS_ORG_ID       = 128
-RATE_LIMIT_DELAY = 0.3    # seconds between availability requests
-MAX_RETRIES      = 3
+RATE_LIMIT_DELAY = 1.0    # seconds between availability requests
+MAX_RETRIES      = 5
 _RIDB_PAGE       = 50
 
 # ── The 63 designated National Parks ──────────────────────────────────────────
@@ -360,15 +361,21 @@ def fetch_month_availability(
                 timeout=30,
             )
             if r.status_code == 429:
-                wait = 2 ** attempt
-                logger.warning("Rate-limited on facility %s; retrying in %ds", facility_id, wait)
-                time.sleep(wait)
+                # Honour Retry-After if present, otherwise exponential backoff
+                retry_after = r.headers.get("Retry-After")
+                wait = float(retry_after) if retry_after else min(60 * 2 ** attempt, 300)
+                jitter = random.uniform(0, wait * 0.25)
+                logger.warning(
+                    "Rate-limited on facility %s; retrying in %.0fs", facility_id, wait + jitter
+                )
+                time.sleep(wait + jitter)
                 continue
             r.raise_for_status()
             return r.json().get("campsites", {})
         except requests.exceptions.RequestException as exc:
             if attempt < MAX_RETRIES:
-                time.sleep(2 ** attempt)
+                wait = min(10 * 2 ** attempt, 120)
+                time.sleep(wait + random.uniform(0, wait * 0.25))
             else:
                 logger.warning("Availability fetch failed for facility %s: %s", facility_id, exc)
     return {}
@@ -472,7 +479,7 @@ def fetch_park_campsite_stats(
                 combined[site_id]["availabilities"].update(
                     site_data.get("availabilities", {})
                 )
-            time.sleep(RATE_LIMIT_DELAY)
+            time.sleep(RATE_LIMIT_DELAY + random.uniform(0, RATE_LIMIT_DELAY * 0.5))
 
         fac_name = facility_names.get(fac_id, f"Campground {fac_id}")
         fac_stats = aggregate_facility_availability(
