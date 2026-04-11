@@ -4,7 +4,7 @@
 data/raw/
 data/nps.db
 nps-seasonal-model/data/raw/
-nps-seasonal-model/data/nps.db
+# nps.db is committed so Render / fresh checkouts have seed data without a build step
 
 # Python
 __pycache__/
