@@ -8,3 +8,5 @@ services:
     envVars:
       - key: NPS_API_KEY
         sync: false
+      - key: RIDB_API_KEY
+        sync: false
