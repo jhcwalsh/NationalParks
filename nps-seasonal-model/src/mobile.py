@@ -327,11 +327,12 @@ def assemble_overview(
         else:
             cur = wx_raw.get("current") or {}
             temp = cur.get("temperature_2m")
-            code_wmo = cur.get("weather_code")
             if temp is not None:
+                # NWS returns shortForecast ("Sunny"); Open-Meteo uses weather_code
+                description = cur.get("short_forecast") or describe_weather_code(cur.get("weather_code"))
                 weather_card = {
                     "temp_f": int(round(temp)),
-                    "description": describe_weather_code(code_wmo),
+                    "description": description,
                 }
             else:
                 logger.warning("load_weather: no 'temperature_2m' in current for %s; keys=%s", code, list(cur.keys()))

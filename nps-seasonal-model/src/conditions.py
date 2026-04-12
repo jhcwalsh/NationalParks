@@ -94,37 +94,90 @@ def describe_weather_code(code: int | float | None) -> str:
 
 # ── Live data loaders ─────────────────────────────────────────────────────────
 
+_NWS_HEADERS = {
+    "User-Agent": "(NationalParksNow, nps-mobile-app)",
+    "Accept": "application/geo+json",
+}
+
+
+def _nws_forecast_url(lat: float, lon: float) -> str | None:
+    """Resolve a lat/lon to a NWS forecast URL (cached permanently)."""
+    key = f"nws-point:{lat:.2f},{lon:.2f}"
+    cached = _cache_get(key)
+    if cached is not None:
+        return cached
+    try:
+        r = requests.get(
+            f"https://api.weather.gov/points/{lat:.4f},{lon:.4f}",
+            headers=_NWS_HEADERS,
+            timeout=10,
+        )
+        r.raise_for_status()
+        url = r.json().get("properties", {}).get("forecast")
+        if url:
+            # Cache grid-point lookups for 24 hours (they never change)
+            with _cache_lock:
+                _cache[key] = (time.monotonic() + 86400, url)
+            return url
+    except Exception:
+        pass
+    return None
+
+
 def load_weather(lat: float, lon: float) -> dict[str, Any]:
-    """Current conditions + 7-day forecast from Open-Meteo (no API key needed)."""
+    """
+    Current weather from the NWS forecast API (free, no key, US-only).
+    Falls back to Open-Meteo if NWS fails.
+    Returns a dict with 'current' key for consistency.
+    """
     key = f"weather:{lat:.2f},{lon:.2f}"
     cached = _cache_get(key)
     if cached is not None:
         return cached
-    last_exc = ""
-    for attempt in range(2):
+
+    # ── Try NWS first ──────────────────────────────────────────────────────
+    forecast_url = _nws_forecast_url(lat, lon)
+    if forecast_url:
         try:
-            r = requests.get(
-                "https://api.open-meteo.com/v1/forecast",
-                params={
-                    "latitude": lat, "longitude": lon,
-                    "current": "temperature_2m,weather_code",
-                    "temperature_unit": "fahrenheit",
-                    "timezone": "auto",
-                },
-                timeout=15,
-            )
-            if r.status_code == 429:
-                time.sleep(5)
-                continue
+            r = requests.get(forecast_url, headers=_NWS_HEADERS, timeout=10)
             r.raise_for_status()
-            result = r.json()
-            _cache_set(key, result)
-            return result
-        except Exception as e:
-            last_exc = f"{type(e).__name__}: {e}"
-            if attempt < 1:
-                time.sleep(3)
-    return {"_error": last_exc}
+            periods = r.json().get("properties", {}).get("periods", [])
+            if periods:
+                p = periods[0]  # current period
+                result = {
+                    "source": "nws",
+                    "current": {
+                        "temperature_2m": p.get("temperature"),  # already °F
+                        "weather_code": None,
+                        "short_forecast": p.get("shortForecast", ""),
+                    },
+                }
+                _cache_set(key, result)
+                return result
+        except Exception:
+            pass  # fall through to Open-Meteo
+
+    # ── Fallback: Open-Meteo ───────────────────────────────────────────────
+    try:
+        r = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": lat, "longitude": lon,
+                "current": "temperature_2m,weather_code",
+                "temperature_unit": "fahrenheit",
+                "timezone": "auto",
+            },
+            timeout=15,
+        )
+        if r.status_code == 429:
+            return {"_error": "Open-Meteo rate limit (429)"}
+        r.raise_for_status()
+        result = r.json()
+        result["source"] = "open-meteo"
+        _cache_set(key, result)
+        return result
+    except Exception as e:
+        return {"_error": f"{type(e).__name__}: {e}"}
 
 
 def load_aqi(lat: float, lon: float) -> dict[str, Any]:
