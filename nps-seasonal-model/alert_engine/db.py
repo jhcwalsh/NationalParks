@@ -227,6 +227,15 @@ async def deactivate_scan(scan_id: int) -> bool:
         return cursor.rowcount > 0
 
 
+async def delete_scan(scan_id: int) -> bool:
+    """Hard-delete a scan and its alert history."""
+    async with aiosqlite.connect(_db_path()) as conn:
+        await conn.execute("DELETE FROM alert_log WHERE scan_id = ?", (scan_id,))
+        cursor = await conn.execute("DELETE FROM scans WHERE id = ?", (scan_id,))
+        await conn.commit()
+        return cursor.rowcount > 0
+
+
 # ── Active facility IDs ──────────────────────────────────────────────────────
 
 async def get_active_facility_ids() -> list[str]:

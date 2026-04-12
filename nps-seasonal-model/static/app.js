@@ -826,9 +826,17 @@ async function loadCxScans() {
       const dateStr = arrival.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
       const flex = s.flexible_arrival ? " (±2 days)" : "";
 
+      // Created timestamp
+      let createdStr = "";
+      if (s.created_at) {
+        const created = new Date(s.created_at);
+        createdStr = `Created ${created.toLocaleDateString("en-US", { month: "short", day: "numeric" })} at ${created.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
+      }
+
       details.innerHTML = `
         <p>${dateStr}${flex} · ${s.num_nights} night${s.num_nights !== 1 ? "s" : ""}</p>
         <p>Type: ${s.site_type} · Alerts sent: ${s.alert_count}</p>
+        ${createdStr ? `<p class="cx-scan-created">${createdStr}</p>` : ""}
       `;
       card.appendChild(details);
 
@@ -859,6 +867,18 @@ async function loadCxScans() {
         });
         actions.appendChild(resumeBtn);
       }
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "cx-action-btn delete";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.addEventListener("click", async () => {
+        if (confirm("Delete this scan permanently?")) {
+          await fetch(`/api/alerts/scans/${s.id}/permanent`, { method: "DELETE" });
+          await loadCxScans();
+          await loadCxStatus();
+        }
+      });
+      actions.appendChild(deleteBtn);
 
       card.appendChild(actions);
       wrap.appendChild(card);

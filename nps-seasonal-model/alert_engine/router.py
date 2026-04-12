@@ -103,6 +103,17 @@ async def delete_scan(scan_id: int):
     return {"status": "paused"}
 
 
+# ── DELETE /api/alerts/scans/{scan_id}/permanent ──────────────────────────────
+
+@router.delete("/scans/{scan_id}/permanent")
+async def permanently_delete_scan(scan_id: int):
+    """Hard-delete a scan and its alert history."""
+    success = await db.delete_scan(scan_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Scan {scan_id} not found")
+    return {"status": "deleted"}
+
+
 # ── GET /api/alerts/scans/{scan_id}/history ───────────────────────────────────
 
 @router.get("/scans/{scan_id}/history")

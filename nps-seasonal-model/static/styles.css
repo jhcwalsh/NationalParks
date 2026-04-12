@@ -783,6 +783,15 @@ html, body {
   color: var(--quiet-text);
   border-color: var(--quiet);
 }
+.cx-action-btn.delete {
+  color: #888;
+  border-color: #ddd;
+}
+.cx-scan-created {
+  font-size: 11px;
+  color: var(--ink-subtle);
+  margin-top: 2px;
+}
 
 /* Status bar */
 .cx-status {
