@@ -30,8 +30,8 @@ from alert_engine.db import init_db
 from alert_engine.poller import start_scheduler
 from alert_engine.router import router as alert_router
 
-# Import the existing NPS API app's routes
-import src.api as nps_api
+# Import the existing NPS API app's routes (src/ is on sys.path above)
+import api as nps_api
 
 logging.basicConfig(
     level=logging.INFO,
