@@ -1,0 +1,1897 @@
+{
+  "fetched_at": "2026-04-12T05:10:35Z",
+  "total_webcams": 189,
+  "images_downloaded": 0,
+  "webcams": [
+    {
+      "park_code": "ACAD",
+      "park_name": "Acadia National Park",
+      "title": "Acadia Air Quality Cam",
+      "cam_url": "https://www.nps.gov/subjects/air/webcams.htm?site=acad",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ACAD",
+      "park_name": "Acadia National Park",
+      "title": "Eye on Acadia",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=35DB6BF0-E1A6-351A-4D2A4CBF185650AF",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ACAD",
+      "park_name": "Acadia National Park",
+      "title": "Jordan Pond Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A483238F-BAE9-C9E2-BE362FE8240C5E7F",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ARCH",
+      "park_name": "Arches National Park",
+      "title": "UDOT Traffic Camera",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46BCF-1DD8-B71B-0B91099975A047A5",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ARCH",
+      "park_name": "Arches National Park",
+      "title": "Entrance Station Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46BDB-1DD8-B71B-0B250E8F4CC1E74A",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/webcam/A9BA2159-F91E-DBA5-E1D4805FFA7F1BC9.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "BIBE",
+      "park_name": "Big Bend National Park",
+      "title": "Live View From Panther Junction",
+      "cam_url": "https://www.nps.gov/subjects/air/webcams.htm?site=bibe",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/45C71608-D013-688F-7914D26F6225F7C2.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "BLCA",
+      "park_name": "Black Canyon of the Gunnison National Park",
+      "title": "Gunnison Point",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=0FA6F288-B063-7618-DF540382B0C0A179",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "BLCA",
+      "park_name": "Black Canyon of the Gunnison National Park",
+      "title": "Grizzly Ridge",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A6FE94EE-A9BA-5531-AD4826003F06F937",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "BLCA",
+      "park_name": "Black Canyon of the Gunnison National Park",
+      "title": "Grizzly Ridge",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=10418AE0-DA0E-967C-30E3C611BCFA949F",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "BRCA",
+      "park_name": "Bryce Canyon National Park",
+      "title": "Air Quality Webcam",
+      "cam_url": "https://www.nps.gov/subjects/air/webcams.htm?site=brca",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "CHIS",
+      "park_name": "Channel Islands National Park",
+      "title": "Channel Islands Live Broadcasts",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A39FA618-E47B-6695-59E54F607F589D73",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/FDDF15A7-FA8A-CCF0-00947997DCC3D35C.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "CHIS",
+      "park_name": "Channel Islands National Park",
+      "title": "San Miguel Island Ranger Station Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=D06EB7EF-9F62-A2F1-8864C5CDBD252CC4",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/FD915E04-E888-EE01-6138EFBD21589EAC.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "CHIS",
+      "park_name": "Channel Islands National Park",
+      "title": "Peregrine Falcon Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A3663442-C6F8-DCB7-A82C44AE5E184E64",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/FCD71ADD-A61D-57A9-C8A70C735880F813.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "CHIS",
+      "park_name": "Channel Islands National Park",
+      "title": "Bald Eagle Webcam (Sauces Canyon Nest)",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A2A1C267-FC04-CC23-EB64A73DE9B46BF2",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/22CD2AFA-B573-600F-C221D0D218D39CDD.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "CHIS",
+      "park_name": "Channel Islands National Park",
+      "title": "Bald Eagle Webcam (Fraser Point Nest)",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A2BB0297-D158-D4C2-32BCEB6A869A13B7",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/22CD2AFA-B573-600F-C221D0D218D39CDD.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "CHIS",
+      "park_name": "Channel Islands National Park",
+      "title": "Ocean Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A33121D1-CE14-D66A-EAB12A6D01BEEB8F",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/FBA4171C-979A-86E9-416FF5B647814FCC.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "CHIS",
+      "park_name": "Channel Islands National Park",
+      "title": "Anacapa Island Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A1D747E2-D28F-7E9B-791E4F715D376D01",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/FB433FDB-A01F-8F9F-5D030367A1EF247C.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "CHIS",
+      "park_name": "Channel Islands National Park",
+      "title": "Mount Diablo Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A2FA7C12-A7F5-A4A9-0C192893791E0B1A",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/FD47DB83-02F0-6236-8E5C61913317B4D7.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "CHIS",
+      "park_name": "Channel Islands National Park",
+      "title": "Channel Islands Live Bald Eagle Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B462B9-1DD8-B71B-0B0390E13AE28767",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "CRLA",
+      "park_name": "Crater Lake National Park",
+      "title": "Steel Information Center",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B462AA-1DD8-B71B-0BAC82E1AFD3CC1D",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "CRLA",
+      "park_name": "Crater Lake National Park",
+      "title": "Annie Spring Entrance Station",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4628D-1DD8-B71B-0B183DA83E05154F",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "CRLA",
+      "park_name": "Crater Lake National Park",
+      "title": "Crater Lake",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=BAB9400D-C123-A696-F87EB5B6A61F30D6",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Alpine Tundra Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B465AC-1DD8-B71B-0B12FBD542C257E8",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Sled Dog Puppies",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B465B9-1DD8-B71B-0BFDBDABAF0B0170",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Sled Dog Puppies",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B465C8-1DD8-B71B-0B222B55A3C27A3E",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Alpine Tundra",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B465E5-1DD8-B71B-0BEE0AB7282CC2B9",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Alpine Tundra",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B466AE-1DD8-B71B-0BC74704AD5A77BC",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Alaska Railroad Depot",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B466C8-1DD8-B71B-0B09BF265A80000E",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/EBD7D020-BB3E-B620-75F8F4FDE7884F0F.jpg",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Sled Dog Puppies",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B466D5-1DD8-B71B-0BE06B0044F90BB2",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Sled Dog Puppies",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46C2C-1DD8-B71B-0BFD462F60FB1EA8",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Denali Puppycam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=25747478-0780-8919-6A9CEF1D47DE6F24",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "DENA",
+      "park_name": "Denali National Park and Preserve",
+      "title": "Berry Bear",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=0AA5A51A-EA2E-C892-7CD18186DE6F682C",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/9D5DC107-E31E-3868-FFC926B2F9C2E759.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "DEVA",
+      "park_name": "Death Valley National Park",
+      "title": "Devils Hole Pupfish",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46C1E-1DD8-B71B-0BFC9EB46EBC79DE",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Snowball the snowman",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B468EE-1DD8-B71B-0BF58C8852F50CC5",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "St. Mary Visitor Center Osprey Nest",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B468FB-1DD8-B71B-0BB2B9C6DC2C0B02",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Lake McDonald - 1",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4690A-1DD8-B71B-0B2D069E1CB02E6A",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Apgar Mountain",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4691B-1DD8-B71B-0BB9DBEE21A59335",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Apgar Village",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4692D-1DD8-B71B-0B9AE4B7C186B022",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Park Headquarters",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46943-1DD8-B71B-0B46D68861599592",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Middle Fork of the Flathead River",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46955-1DD8-B71B-0B698C4D88410C05",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "The Ground Squirrels are Awake",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B469A8-1DD8-B71B-0BD1B431665C86DC",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "St. Mary Visitor Center",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=AE7C9B53-910E-6D3A-D6133266826C6977",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Logan Pass Parking Lot",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=57A6D720-C646-1727-688AC3D953C2AECF",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Two Medicine",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=29CE45EA-EF1D-13A4-9C8E92F1FBFED9C7",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Many Glacier - 2",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=2B15B960-C427-0389-BDC2FA209372B7F6",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Logan Pass Parking Lot",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=325AE6AF-BAEB-F65D-EF3D638BF683E78E",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "West Entrance",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=33478DF3-1DD8-B71B-0B8C97DB0A03B0F7",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Two Medicine 1",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=1F7197E2-FF96-18D7-0AC05A501EBA2571",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Two Medicine PTZ",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=201E9B0D-C6C0-3D20-4C90C0CCFFDF6D73",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Snowball, Snowflake and Chilly Are Back!",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=5EBFD1C4-E286-D2C9-4A147E5C52F3442F",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Apgar 2",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=64C657CB-DE31-7B14-4E3946885805BD67",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Logan Pass - 1",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=6E559311-9E10-3A12-2442A20797C7B6C6",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Lake McDonald - 2",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=D428B88A-BC1A-A5BF-88E3D63CF89D3452",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Glacier Night Sky Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=D4BDFE7E-AC7F-D681-8A03C820E06CBA0A",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "St. Mary Visitor Center - Dusty Star Observatory Sky Cam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=FEBE3539-D0B5-B95A-B341B5A5C777FB9E",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Apgar Visitor Center Plaza",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=7290EA71-A74E-A7B4-74805070A3996FAC",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Logan Pass 2",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=7A5DA146-CE8D-E071-2C00362A062A3D0E",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLAC",
+      "park_name": "Glacier National Park",
+      "title": "Many Glacier",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=2ABFE780-E817-D105-9B14697AEB43EBA6",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLBA",
+      "park_name": "Glacier Bay National Park and Preserve",
+      "title": "webtest",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B465F3-1DD8-B71B-0BF379030C578008",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLBA",
+      "park_name": "Glacier Bay National Park and Preserve",
+      "title": "Bartlett Cove Dock and Tlingit Trail",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46720-1DD8-B71B-0B4AA07A2DC9D393",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/238A14CF-04A2-C6D9-4BD651C0E15403BF.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLBA",
+      "park_name": "Glacier Bay National Park and Preserve",
+      "title": "Lower Glacier Bay",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4672D-1DD8-B71B-0B04336F55ECDD47",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/1835E18E-F0CF-C499-5887B68D29F60437.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLBA",
+      "park_name": "Glacier Bay National Park and Preserve",
+      "title": "Bartlett Cove Lagoon and Fairweather Range",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46702-1DD8-B71B-0BF47E9DB5A237C2",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/17DBDC0B-E911-BA51-7630FD02E5E9142B.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GLBA",
+      "park_name": "Glacier Bay National Park and Preserve",
+      "title": "Bartlett Cove Public Dock",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46712-1DD8-B71B-0B4B99EDA0AE3CFC",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/24831CE2-F65D-6EFF-51060AF4B2D32B3D.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "Bright Angel Trailhead View",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=69E0162D-0ED1-F68A-6B52A11F95FD867B",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "South Entrance Station",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=9B5FC6BA-9FE6-EC6B-61637825D562D367",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "View from Jacob Lake, Arizona",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=B08B53F1-D1E6-7E94-3AAA19135F31B142",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "View from Kolb Studio",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=CC0CA1C7-E607-6F46-707E19938BBFEE63",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "San Francisco Peaks",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=348818A5-C6EE-66E7-41F5F43A4C334357",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "State Route 64 (Mile 213.9)",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=692DB1BB-E2E6-22EC-034062D3C0C936B5",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "Flagstaff, Arizona \u2014 I-40",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=69687067-BE16-062D-2F789E22263AABA3",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "Live View From Kolb Studio",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=6A810B9D-FB9E-434B-2215EE8E8AB6D5B3",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "State Route 64 (Mile 235.15)",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=7D6A3936-E1C5-C480-4FA08472583AA182",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "Yavapai Point \u2014 Looking NW",
+      "cam_url": "https://www.nps.gov/subjects/air/webcams.htm?site=grca",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRCA",
+      "park_name": "Grand Canyon National Park",
+      "title": "Live View from Kolb Studio",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=9B845D44-B068-FC35-F5624BE98470DE22",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRSA",
+      "park_name": "Great Sand Dunes National Park and Preserve",
+      "title": "Visitor Center",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46A26-1DD8-B71B-0B14B49F55CDE266",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRSM",
+      "park_name": "Great Smoky Mountains National Park",
+      "title": "Kuwohi Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=BDFD47F3-1DD8-B71B-0B81AFE928DDCBCF",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRSM",
+      "park_name": "Great Smoky Mountains National Park",
+      "title": "Purchase Knob Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=52E38701-AF1C-D2FC-3F23861BB6E221BB",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/6834522E-DD60-88CB-0B234B70870F68FD.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRSM",
+      "park_name": "Great Smoky Mountains National Park",
+      "title": "Look Rock Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=6878C635-B83A-8F41-A6E3B0160539BEAA",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/68850279-064F-589D-DD1AD36A5A87B63E.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRSM",
+      "park_name": "Great Smoky Mountains National Park",
+      "title": "Twin Creek Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=29A53AEC-1DD8-B71B-0BC49F5DA731C317",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRSM",
+      "park_name": "Great Smoky Mountains National Park",
+      "title": "Newfound Gap Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=C589EEEF-1DD8-B71B-0B0463C308FF64DD",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRTE",
+      "park_name": "Grand Teton National Park",
+      "title": "Current view from the Craig Thomas Discovery & Visitor Center in Moose, WY",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=9603ED1D-F805-714D-AC4557683B558B00",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "GRTE",
+      "park_name": "Grand Teton National Park",
+      "title": "NPS Air Resources",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46A95-1DD8-B71B-0B8F152DC0EE9CB0",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GRTE",
+      "park_name": "Grand Teton National Park",
+      "title": "Teton Park Road Webcam - Seasonal",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=E867ADDA-BEC3-6203-5518AE5741F78D04",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GUMO",
+      "park_name": "Guadalupe Mountains National Park",
+      "title": "El Capitan View",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=9849DE2B-BC23-1110-33CED7C04E8AAF05",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/357C0EB9-B5B4-D7E7-9AC756993AC6DD18.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GUMO",
+      "park_name": "Guadalupe Mountains National Park",
+      "title": "Dog Canyon View",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=3598C342-D08B-A76D-2A442D3D2864EFD6",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/35CD58C8-E25F-9BE7-11E11A4137CE956A.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "GUMO",
+      "park_name": "Guadalupe Mountains National Park",
+      "title": "Pine Springs Canyon View",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=E73E3175-DF46-3AF2-28593FC1F83AE264",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/3558178A-DF75-5B37-6B78783F7ADC42AC.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HALE",
+      "park_name": "Haleakala National Park",
+      "title": "Live Haleakal\u0101 Crater Cam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=56F5E0DC-9116-8502-7F673D0FF0B8378A",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Pu\u02bbu\u02bb\u014d\u02bb\u014d Southeast Coast",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=430C8380-8BB1-4917-B443-80875DDB9CE1",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Current Conditions of K\u012blauea Summit Eruption",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=BE0D095F-A635-DFBC-874A2E99F76898DD",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Live view of the upper Southwest Rift Zone of K\u012blauea",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=C8A35ACF-C302-AF3A-5B4086EEB669F711",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Live Image of Kaluapele (K\u012blauea caldera) from U\u0113kahuna bluff",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=C8F61201-BB93-4F34-ECBD63CB56715481",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "View of Halema\u02bbuma\u02bbu crater at the summit of K\u012blauea, view is to the west",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=C954D561-D173-F216-1F7F97BCB24BB3B1",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "K\u012blauea Summit from Mauna Loa Strip Road- [KPcam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=CA194288-F226-EE43-8DE98FD5F20FC4FF",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Mauna Loa's Summit and Northeast Rift Zone from Mauna Kea [MKcam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=CADD9583-AF7C-1DC8-FFC97C9F699D7A14",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Maunaulu Cam [MUcam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=CAF65190-DBCA-1A22-29A80739FEFBC817",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Pu\u02bbu\u02bb\u014d\u02bb\u014d West Flank from Pu\u02bbu\u02bb\u014d\u02bb\u014d [PWcam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=CB297CB0-CB5C-99F3-868877061AFB0B62",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "K\u012blauea's upper Southwest Rift Zone, looking northwest [MITDcam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=CBF20C5F-EEA2-F4E0-1EBF6ADE74D2DABA",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Moku\u02bb\u0101weoweo Caldera Thermal [MTcam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=3BFA7662-E5A8-E395-ABD45F3FF29D945E",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "The Upper Part of Mauna Loa's Southwest Rift Zone [M3cam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=3C0FF559-A0C6-5407-2A0C33CD91A1D88B",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "West vent in Halema\u02bbuma\u02bbu and lava lake - [V1cam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=182ADDB9-0627-4EBA-94C1658E5EF29871",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Halema\u02bbuma\u02bbu crater from the east rim and down-dropped block [V2cam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=6AA1C994-BB25-26A1-A524367EA9E7D676",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Live Image of N\u0101pau Crater from east side of crater [S2cam]",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=71F381C4-E87A-BCEC-51AC1FBE0BEDDBE9",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Moku\u02bb\u0101weoweo Caldera from the Northwest Rim",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=E1BA8F29-0BAF-52FE-229F39263A990800",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Middle Part of Mauna Loa's Southwest Rift Zone",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=EE01A0C2-D2E7-409E-2D8DE27D2F308C35",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Upper and Middle Parts of Mauna Loa's Southwest Rift Zone",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=EE196017-AB32-9FD8-74239F3918E28F2C",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Northwest flank from Hual\u0101lai volcano",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=EE2AB5B3-D7D0-8A1E-8C719BFF988F87B1",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "HAVO",
+      "park_name": "Hawaii Volcanoes National Park",
+      "title": "Pu\u02bbu\u02bb\u014d\u02bb\u014d East Flank from East of Pu\u02bbu\u02bb\u014d\u02bb\u014d",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=EDA334EA-BFA0-656C-A9D41EB152C2D683",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "Windigo Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=C97C8431-A655-D5A3-13742820024E5899",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "Mott Island Southwest Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=AB97D925-E45D-295C-F7C13BBDC35AF9E5",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "Middle Islands Passage Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A3F24CFE-E4F1-7EB2-F802285F953253C2",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "Greenstone Ridge Northeast Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A4B08269-BE8A-67B6-5AA047AB05CE4814",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "North Shore Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A3720AFA-E940-6127-6902E95ED431184B",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "Tobin Harbor Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=41516A2F-B710-0362-EFEECACAA00F1EF0",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "Rock Harbor Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46B18-1DD8-B71B-0B6741D09D58BA2A",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "Greenstone Ridge Southwest Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=0EE1CA55-EE60-AA3D-094562D38610B700",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "Mott Island Dock",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=FB2B5F92-E9F6-6BE9-6DD9CEE73DB0E31C",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ISRO",
+      "park_name": "Isle Royale National Park",
+      "title": "Smithwick Channel Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=EEC7A140-A320-5EC7-9344207E9416A87C",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "JOTR",
+      "park_name": "Joshua Tree National Park",
+      "title": "View from Belle Mountain",
+      "cam_url": "https://www.nps.gov/subjects/air/webcams.htm?site=jotr",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "KATM",
+      "park_name": "Katmai National Park and Preserve",
+      "title": "Brooks Falls Bearcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=D32F071A-B8F7-08A4-65F765E8BB714DCF",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/CCBB1534-BD22-5A82-89A3B23B44CF1C3C.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "KATM",
+      "park_name": "Katmai National Park and Preserve",
+      "title": "Dumpling Mountain Cam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=D3544467-9A96-0068-4B745F74BE0F93F8",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/CBD943FA-0219-3C01-20726EA21BC0FF02.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "KATM",
+      "park_name": "Katmai National Park and Preserve",
+      "title": "Brooks Falls Low",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=685F9313-93FF-1D21-E468CD721933B65A",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "KATM",
+      "park_name": "Katmai National Park and Preserve",
+      "title": "River Watch Cam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=D404ED1D-E46F-2D08-8729B2BF39A2CCE9",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/CCE74CE6-DE14-8DE6-3B4D4DDEBC3CAE3B.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "KATM",
+      "park_name": "Katmai National Park and Preserve",
+      "title": "Naknek River Cam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=D3A52BBE-EBA9-6A92-2AADC5935F9D882F",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/CC7EC806-B0D0-D04E-171DE1881B65030D.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "KATM",
+      "park_name": "Katmai National Park and Preserve",
+      "title": "Riffles BearCam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=D3D9F63F-C70C-3004-18867136AB648DFA",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/CC0B222C-CEC0-F0DB-39291E4B65AB51F7.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "KEFJ",
+      "park_name": "Kenai Fjords National Park",
+      "title": "Bear Glacier Ice-Dammed Lake Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46C3A-1DD8-B71B-0B22174C4AB402E7",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "LAVO",
+      "park_name": "Lassen Volcanic National Park",
+      "title": "Manzanita Lake Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4627F-1DD8-B71B-0BEBCC5B1768D617",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "LAVO",
+      "park_name": "Lassen Volcanic National Park",
+      "title": "Kohm Yah-mah-nee Visitor Center Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=9DFC6A5A-04A9-4982-806C-26C2B9FEC6D4",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MACA",
+      "park_name": "Mammoth Cave National Park",
+      "title": "Green River Bluffs & Air Quality",
+      "cam_url": "https://www.nps.gov/subjects/air/webcams.htm?site=maca",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/5F24185D-B727-6921-0A81705F39C0203B.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MEVE",
+      "park_name": "Mesa Verde National Park",
+      "title": "Spruce Tree House",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46A88-1DD8-B71B-0B167518C73343F3",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/B6C6A046-F735-7C82-87ECCD7872E878CB.jpg",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Tatoosh",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46402-1DD8-B71B-0B95C911C1395AAC",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Air Quality",
+      "cam_url": "https://www.nps.gov/subjects/air/webcams.htm?site=mora",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Longmire",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46445-1DD8-B71B-0BB0376A8482E275",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Mountain",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46307-1DD8-B71B-0B72918A4B2EB790",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "East",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B463D4-1DD8-B71B-0BB1FE8364315734",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Visitor Center",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B463F4-1DD8-B71B-0B9A136C52BCC56D",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Camp Muir East",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=7E694512-03CE-2F70-6268044EFA517F8D",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Camp Muir",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46411-1DD8-B71B-0B1CC218FB03772F",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Camp Schurman",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46438-1DD8-B71B-0BDDDE3FF288F323",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "West",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B463E4-1DD8-B71B-0B3E1F3743E9614D",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Sunrise Mountain",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4638D-1DD8-B71B-0B1092DD4F75978D",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "MORA",
+      "park_name": "Mount Rainier National Park",
+      "title": "Sunrise East",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4642A-1DD8-B71B-0B91DBD2C476DCBD",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "NERI",
+      "park_name": "New River Gorge National Park and Preserve",
+      "title": "Canyon Rim Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46B4D-1DD8-B71B-0B2BE8832A704868",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "NERI",
+      "park_name": "New River Gorge National Park and Preserve",
+      "title": "Canyon Rim Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=03D5B344-9A69-16BC-F00004463B3C22F8",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "OLYM",
+      "park_name": "Olympic National Park",
+      "title": "Hurricane Ridge",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46251-1DD8-B71B-0B29B9750DE273B5",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "OLYM",
+      "park_name": "Olympic National Park",
+      "title": "Hurricane Ridge Parking Lot",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46260-1DD8-B71B-0B7A7B41BF33172A",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "PEFO",
+      "park_name": "Petrified Forest National Park",
+      "title": "Webcam at the Painted Desert Inn National Historic Landmark",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46C72-1DD8-B71B-0BDC8D1824EBB9A7",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "REDW",
+      "park_name": "Redwood National and State Parks",
+      "title": "Bald Hills & Redwood Creek",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=02E6B14D-AF74-6C67-7AF43C0AC3FA23CE",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "REDW",
+      "park_name": "Redwood National and State Parks",
+      "title": "Jedediah Smith Redwoods State Park",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=BB7B050A-BE3B-E7FE-BFED58CB2E874B0F",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "REDW",
+      "park_name": "Redwood National and State Parks",
+      "title": "Thomas H. Kuchel Visitor Center",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=BD37BB78-0E56-34CE-3270526D6CCC87CA",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "REDW",
+      "park_name": "Redwood National and State Parks",
+      "title": "Elk Prairie at Prairie Creek Redwoods State Park",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=7553A227-AAEA-6A87-2496155B0FB5BE97",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ROMO",
+      "park_name": "Rocky Mountain National Park",
+      "title": "Alpine Visitor Center",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4681E-1DD8-B71B-0B8311E4FAC15EF4",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ROMO",
+      "park_name": "Rocky Mountain National Park",
+      "title": "Kawuneeche Valley",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4682A-1DD8-B71B-0BBC127D2E00ACD9",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ROMO",
+      "park_name": "Rocky Mountain National Park",
+      "title": "Continental Divide",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4683A-1DD8-B71B-0B01974CAAE7F372",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ROMO",
+      "park_name": "Rocky Mountain National Park",
+      "title": "Longs Peak",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46847-1DD8-B71B-0B46D032F33B54DF",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ROMO",
+      "park_name": "Rocky Mountain National Park",
+      "title": "Fall River Entrance/U.S. Hwy 34",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46856-1DD8-B71B-0B8636427EFFC938",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ROMO",
+      "park_name": "Rocky Mountain National Park",
+      "title": "Beaver Meadows Entrance/U.S. Hwy 36",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4686B-1DD8-B71B-0B122CB864D072FC",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ROMO",
+      "park_name": "Rocky Mountain National Park",
+      "title": "Grand Lake Entrance/ U.S. Hwy 34",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=3F33B673-957B-51DD-612B99E4A9FDF417",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "SHEN",
+      "park_name": "Shenandoah National Park",
+      "title": "Big Meadows",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46B99-1DD8-B71B-0B124A40CC3384CE",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/798E3A07-ED2A-4A7C-DC656F12775B7A1C.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "SHEN",
+      "park_name": "Shenandoah National Park",
+      "title": "The Shenandoah Valley Webcam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=2BB1FF1F-BF6C-9F10-BFAFCCEFC8F0D861",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/30F319FC-E35C-713F-FC3D30081EFC7AEE.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "SHEN",
+      "park_name": "Shenandoah National Park",
+      "title": "Big Meadows Live",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=5BA652A1-979D-4485-F22E9F780981BD17",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/64E3DBB8-D049-616E-34DA4067BE0D3391.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "SHEN",
+      "park_name": "Shenandoah National Park",
+      "title": "Mountain View Cam",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46B71-1DD8-B71B-0B55074571E08B1E",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/79ED39A1-F4F6-2553-B49DB523127C8D0A.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "WRST",
+      "park_name": "Wrangell-St. Elias National Park and Preserve",
+      "title": "Kennecott Mill and Mt. Blackburn",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=51F606E1-BAF1-472B-2BC7D21ED4CDA08E",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/E4CA00CE-0C22-9E7F-11355AC3D84B705A.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "WRST",
+      "park_name": "Wrangell-St. Elias National Park and Preserve",
+      "title": "Kennicott Glacier and the Chugach Range",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=5224B014-CBDE-5E14-DEF34EBF65E78E88",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "WRST",
+      "park_name": "Wrangell-St. Elias National Park and Preserve",
+      "title": "Wrangell Mountains from Park Headquarters",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=F91F11B2-C421-28C4-16C717FF1FF2CB72",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/04DA20E6-DEC0-69D0-D7E27A2B5E1605FA.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "Old Faithful & Upper Geyser Basin Livestream",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=CE843A37-74A2-4408-9176-26A8DCC97294",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": true
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "Mount Washburn - Northeastern View",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46891-1DD8-B71B-0B6575944D4DECD5",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "North Entrance - Electric Peak",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B468AB-1DD8-B71B-0BE84D8E8E0F1112",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "North Entrance - Out of the Park",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B468BC-1DD8-B71B-0BBA4C383E179188",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "West Entrance - Out of the Park",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B468C8-1DD8-B71B-0BFE5983E4D2E421",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "West Entrance - Into the Park",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B468D6-1DD8-B71B-0B9C2E324EF5F9F8",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "Mammoth Hot Springs - Travertine Terraces",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=696F20E1-F421-B232-FE72D6D85B157422",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "Mount Washburn - Southern View",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B4689E-1DD8-B71B-0B8741319EA29FD3",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "East Entrance - Out of Park",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=45FDA0AC-0A10-4ACA-A0C6-44F440575AE1",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YELL",
+      "park_name": "Yellowstone National Park",
+      "title": "East Entrance - Into Park",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=E3772256-9585-4859-A1FD-FC47F15F7226",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Turtleback Dome & Air Quality",
+      "cam_url": "https://www.nps.gov/subjects/air/webcams.htm?site=yose",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Merced River at Happy Isles",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46521-1DD8-B71B-0BB6424139EC91BE",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "El Capitan",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=B28D5845-C504-BBA5-17748BFF1C6CC716",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Yosemite High Sierra",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=50E781A7-99A4-27F7-3773DF1DBB57C0FC",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Half Dome",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=510DED3A-F9E0-3BCC-3A896F980BE05DFE",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "El Capitan",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=521123D5-0EA2-C472-403A8D58B11A614F",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Yosemite High Sierra",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=1148077C-F06F-CD3A-969692F6BC0481AC",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "MR a HIB",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46145-1DD8-B71B-0B6E50736E024FE4",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Yosemite Falls",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=3E81EC42-BB62-0A59-E30ABB8F1646322E",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/CD3726C8-CBC1-8184-E423F385816B9051.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Half Dome",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=EAA24FCD-BC0D-C360-19BF30B462D0ACE8",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/CD5538E5-C86F-1BF9-575C7C85E1307E45.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Half Dome",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=41F428E8-0F6C-B7E7-115A629BA1AE9F51",
+      "image_url": "https://www.nps.govhttps://www.nps.gov/common/uploads/cropped_image/CD5538E5-C86F-1BF9-575C7C85E1307E45.jpg",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": true
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Tuolumne Meadows (summer only)",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46511-1DD8-B71B-0BF4530A57767712",
+      "image_url": "",
+      "local_image": null,
+      "status": "Inactive",
+      "is_streaming": false
+    },
+    {
+      "park_code": "YOSE",
+      "park_name": "Yosemite National Park",
+      "title": "Badger Pass Ski Area",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46503-1DD8-B71B-0BABF33689031F0B",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ZION",
+      "park_name": "Zion National Park",
+      "title": "Temples And Towers of the Virgin",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=A4068FB2-DB05-82B5-F242852BBAA0A971",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    },
+    {
+      "park_code": "ZION",
+      "park_name": "Zion National Park",
+      "title": "South Gate Entrance",
+      "cam_url": "https://www.nps.gov/media/webcam/view.htm?id=81B46CC4-1DD8-B71B-0B1B52AAF5930623",
+      "image_url": "",
+      "local_image": null,
+      "status": "Active",
+      "is_streaming": false
+    }
+  ]
+}
