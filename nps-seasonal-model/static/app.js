@@ -384,20 +384,38 @@ function renderWebcams(data) {
     for (const cam of cams) {
       const a = document.createElement("a");
       a.className = "webcam-card";
-      a.href = cam.url;
+      a.href = cam.url || data.nps_page || "#";
       a.target = "_blank";
       a.rel = "noopener";
+
+      if (cam.image) {
+        const img = document.createElement("img");
+        img.className = "wc-image";
+        img.src = cam.image;
+        img.alt = cam.title;
+        img.loading = "lazy";
+        a.appendChild(img);
+      }
+
+      const info = document.createElement("div");
+      info.className = "wc-info";
 
       const title = document.createElement("p");
       title.className = "wc-title";
       title.textContent = cam.title;
+      info.appendChild(title);
 
+      const badges = [];
+      if (cam.status && cam.status.toLowerCase() === "active") badges.push("Active");
+      if (cam.is_streaming) badges.push("Live");
       const sub = document.createElement("p");
       sub.className = "wc-sub";
-      sub.textContent = "View on NPS.gov →";
+      sub.textContent = badges.length > 0
+        ? badges.join(" · ") + " — View on NPS.gov →"
+        : "View on NPS.gov →";
+      info.appendChild(sub);
 
-      a.appendChild(title);
-      a.appendChild(sub);
+      a.appendChild(info);
       wrap.appendChild(a);
     }
   }
