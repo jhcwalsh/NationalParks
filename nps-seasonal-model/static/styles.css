@@ -318,6 +318,66 @@ html, body {
   font-weight: 600;
 }
 
+/* ── Webcams tab ──────────────────────────────────────── */
+.webcams-tab {
+  padding: 18px var(--pad) 0;
+}
+.webcams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.webcam-card {
+  display: block;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+  color: var(--ink);
+  transition: background 0.15s;
+}
+.webcam-card:active {
+  background: var(--surface-alt);
+}
+.webcam-card .wc-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+.webcam-card .wc-sub {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin: 0;
+}
+.webcams-nps-link {
+  display: block;
+  text-align: center;
+  margin: 16px 0 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 600;
+}
+.webcams-nps-link:active {
+  background: var(--surface-alt);
+}
+.webcams-note {
+  margin: 10px 0 0 0;
+  font-size: 11px;
+  color: var(--ink-subtle);
+  text-align: center;
+}
+.webcams-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+
 /* ── Bottom tabs ──────────────────────────────────────── */
 .tabs {
   position: fixed;

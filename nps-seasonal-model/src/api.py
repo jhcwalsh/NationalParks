@@ -33,6 +33,7 @@ sys.path.insert(0, str(ROOT / "src"))
 import db
 import mobile
 import model as mdl
+import webcams as _webcams
 from campsites import NATIONAL_PARKS
 
 app = FastAPI(
@@ -197,6 +198,15 @@ def park_conditions(unit_code: str):
         "weather_raw": load_weather(lat, lon),
         "aqi_raw": load_aqi(lat, lon),
     }
+
+
+# ── /parks/{unit_code}/webcams ─────────────────────────────────────────────────
+
+@app.get("/parks/{unit_code}/webcams")
+def park_webcams(unit_code: str):
+    """Webcam list for a park (hardcoded catalog + NPS webcam page link)."""
+    code = _require_national_park(unit_code)
+    return _webcams.get_webcams(code)
 
 
 # ── /parks/{unit_code}/overview  (mobile Overview screen) ─────────────────────

@@ -41,6 +41,8 @@ async function loadPark(code) {
   url.searchParams.set("park", code);
   window.history.replaceState({}, "", url);
 
+  // Reset to Overview tab when switching parks
+  resetToOverviewTab();
   setSkeleton();
 
   try {
@@ -287,14 +289,125 @@ function wireSearch() {
   });
 }
 
+function resetToOverviewTab() {
+  const tabs = document.querySelectorAll(".tab");
+  tabs.forEach((b) => b.classList.toggle("is-active", b.dataset.tab === "overview"));
+  document.querySelectorAll(".park-header, .cards, .alerts, .monthly").forEach(
+    (s) => (s.style.display = ""),
+  );
+  el("webcams-tab").hidden = true;
+  el("tab-placeholder").hidden = true;
+}
+
 // ── Bottom tabs ───────────────────────────────────────────────────────────
+
+// Sections that are visible on each tab
+const TAB_SECTIONS = {
+  overview: ["park-header", "cards", "alerts", "monthly"],
+  webcams:  ["park-header", "webcams-tab"],
+};
+
 function wireTabs() {
   const tabs = document.querySelectorAll(".tab");
   const placeholder = el("tab-placeholder");
+  const webcamsTab = el("webcams-tab");
+  const overviewSections = document.querySelectorAll(
+    ".park-header, .cards, .alerts, .monthly",
+  );
+
   tabs.forEach((btn) => {
     btn.addEventListener("click", () => {
+      const tab = btn.dataset.tab;
       tabs.forEach((b) => b.classList.toggle("is-active", b === btn));
-      placeholder.hidden = btn.dataset.tab === "overview";
+
+      if (tab === "overview") {
+        overviewSections.forEach((s) => (s.style.display = ""));
+        webcamsTab.hidden = true;
+        placeholder.hidden = true;
+      } else if (tab === "webcams") {
+        overviewSections.forEach((s) => (s.style.display = "none"));
+        webcamsTab.hidden = false;
+        placeholder.hidden = true;
+        loadWebcams();
+      } else {
+        overviewSections.forEach((s) => (s.style.display = "none"));
+        webcamsTab.hidden = true;
+        placeholder.hidden = false;
+      }
     });
   });
+}
+
+// ── Webcams ──────────────────────────────────────────────────────────────
+let webcamsCache = {};  // park code → data
+
+async function loadWebcams() {
+  const code = state.currentCode;
+  if (!code) return;
+
+  const wrap = el("webcams-list");
+  const link = el("webcams-nps-link");
+  const note = el("webcams-note");
+
+  // Use cache if available
+  if (webcamsCache[code]) {
+    renderWebcams(webcamsCache[code]);
+    return;
+  }
+
+  wrap.innerHTML = '<p class="webcams-empty">Loading webcams…</p>';
+  link.hidden = true;
+  note.textContent = "";
+
+  try {
+    const r = await fetch(`/parks/${code}/webcams`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    webcamsCache[code] = data;
+    renderWebcams(data);
+  } catch (err) {
+    wrap.innerHTML = `<p class="webcams-empty">Unable to load webcams: ${err.message}</p>`;
+  }
+}
+
+function renderWebcams(data) {
+  const wrap = el("webcams-list");
+  const link = el("webcams-nps-link");
+  const note = el("webcams-note");
+
+  wrap.innerHTML = "";
+  const cams = data.webcams || [];
+
+  if (cams.length === 0) {
+    wrap.innerHTML = '<p class="webcams-empty">No webcam data available for this park yet.</p>';
+  } else {
+    for (const cam of cams) {
+      const a = document.createElement("a");
+      a.className = "webcam-card";
+      a.href = cam.url;
+      a.target = "_blank";
+      a.rel = "noopener";
+
+      const title = document.createElement("p");
+      title.className = "wc-title";
+      title.textContent = cam.title;
+
+      const sub = document.createElement("p");
+      sub.className = "wc-sub";
+      sub.textContent = "View on NPS.gov →";
+
+      a.appendChild(title);
+      a.appendChild(sub);
+      wrap.appendChild(a);
+    }
+  }
+
+  if (data.nps_page) {
+    link.href = data.nps_page;
+    link.hidden = false;
+  } else {
+    link.hidden = true;
+  }
+
+  note.textContent = data.note || "";
 }
