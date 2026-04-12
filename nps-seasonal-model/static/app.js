@@ -872,7 +872,7 @@ async function loadCxScans() {
       deleteBtn.className = "cx-action-btn delete";
       deleteBtn.textContent = "Delete";
       deleteBtn.addEventListener("click", async () => {
-        if (confirm("Delete this scan permanently?")) {
+        if (confirm(`Are you sure you want to delete this scan for ${s.park_name}?`)) {
           await fetch(`/api/alerts/scans/${s.id}/permanent`, { method: "DELETE" });
           await loadCxScans();
           await loadCxStatus();
