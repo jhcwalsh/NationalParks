@@ -1,0 +1,58 @@
+[
+  {
+    "facility_id": "251869",
+    "park_code": "GLAC",
+    "facility_name": "Apgar Campground",
+    "lat": 48.7596,
+    "lon": -113.787
+  },
+  {
+    "facility_id": "232493",
+    "park_code": "GLAC",
+    "facility_name": "Fish Creek",
+    "lat": 48.5,
+    "lon": -113.98
+  },
+  {
+    "facility_id": "234869",
+    "park_code": "GRCA",
+    "facility_name": "Mather Campground",
+    "lat": 36.0561,
+    "lon": -112.122
+  },
+  {
+    "facility_id": "232450",
+    "park_code": "YOSE",
+    "facility_name": "Lower Pines",
+    "lat": 37.7399,
+    "lon": -119.5652
+  },
+  {
+    "facility_id": "232449",
+    "park_code": "YOSE",
+    "facility_name": "North Pines",
+    "lat": 37.744,
+    "lon": -119.5652
+  },
+  {
+    "facility_id": "232447",
+    "park_code": "YOSE",
+    "facility_name": "Upper Pines",
+    "lat": 37.7456,
+    "lon": -119.5936
+  },
+  {
+    "facility_id": "272267",
+    "park_code": "ZION",
+    "facility_name": "South Campground",
+    "lat": 37.205,
+    "lon": -112.98
+  },
+  {
+    "facility_id": "272265",
+    "park_code": "ZION",
+    "facility_name": "Watchman Campground",
+    "lat": 37.209,
+    "lon": -112.9801
+  }
+]

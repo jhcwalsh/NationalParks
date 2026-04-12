@@ -15,6 +15,7 @@ Requires RIDB_API_KEY in .env or environment.
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import sys
 from pathlib import Path
@@ -62,6 +63,13 @@ def main() -> None:
             })
 
     print(f"\nFound {len(facilities)} campgrounds across {len(park_map)} parks\n")
+
+    # Save to JSON for git (so Render doesn't need the API key)
+    json_path = ROOT / "data" / "facilities.json"
+    json_path.parent.mkdir(exist_ok=True)
+    with open(json_path, "w") as f:
+        json.dump(facilities, f, indent=2)
+    print(f"Saved to {json_path}")
 
     # Insert into database
     asyncio.run(_insert_facilities(facilities))
