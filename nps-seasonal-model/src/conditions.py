@@ -13,10 +13,35 @@ need caching should wrap them.
 from __future__ import annotations
 
 import math
+import threading
 import time
 from typing import Any
 
 import requests
+
+
+# ── Simple TTL cache (no external deps) ───────────────────────────────────────
+# Prevents rate-limit (HTTP 429) from Open-Meteo when the FastAPI service
+# handles multiple requests.  Streamlit has its own @st.cache_data layer on
+# top of these functions, so the cache is invisible to it.
+
+_cache_lock = threading.Lock()
+_cache: dict[str, tuple[float, Any]] = {}   # key → (expires_at, value)
+_CACHE_TTL = 1800  # 30 minutes, same as the Streamlit cache
+
+
+def _cache_get(key: str) -> Any | None:
+    with _cache_lock:
+        entry = _cache.get(key)
+        if entry and entry[0] > time.monotonic():
+            return entry[1]
+        _cache.pop(key, None)
+    return None
+
+
+def _cache_set(key: str, value: Any) -> None:
+    with _cache_lock:
+        _cache[key] = (time.monotonic() + _CACHE_TTL, value)
 
 # ── Static lat/lon for all 63 national parks ──────────────────────────────────
 PARK_COORDS: dict[str, tuple[float, float]] = {
@@ -71,36 +96,43 @@ def describe_weather_code(code: int | float | None) -> str:
 
 def load_weather(lat: float, lon: float) -> dict[str, Any]:
     """Current conditions + 7-day forecast from Open-Meteo (no API key needed)."""
+    key = f"weather:{lat:.2f},{lon:.2f}"
+    cached = _cache_get(key)
+    if cached is not None:
+        return cached
     last_exc = ""
-    for attempt in range(3):
+    for attempt in range(2):
         try:
             r = requests.get(
                 "https://api.open-meteo.com/v1/forecast",
                 params={
                     "latitude": lat, "longitude": lon,
-                    "current": "temperature_2m,apparent_temperature,precipitation,"
-                               "wind_speed_10m,wind_direction_10m,weather_code,uv_index",
-                    "daily": "weather_code,temperature_2m_max,temperature_2m_min,"
-                             "precipitation_sum,uv_index_max,sunrise,sunset",
+                    "current": "temperature_2m,weather_code",
                     "temperature_unit": "fahrenheit",
-                    "wind_speed_unit": "mph",
-                    "precipitation_unit": "inch",
                     "timezone": "auto",
-                    "forecast_days": 7,
                 },
-                timeout=20,
+                timeout=15,
             )
+            if r.status_code == 429:
+                time.sleep(5)
+                continue
             r.raise_for_status()
-            return r.json()
+            result = r.json()
+            _cache_set(key, result)
+            return result
         except Exception as e:
             last_exc = f"{type(e).__name__}: {e}"
-            if attempt < 2:
-                time.sleep(2 ** attempt)
+            if attempt < 1:
+                time.sleep(3)
     return {"_error": last_exc}
 
 
 def load_aqi(lat: float, lon: float) -> dict[str, Any]:
     """Current AQI + pollutant breakdown from Open-Meteo Air Quality (no key needed)."""
+    key = f"aqi:{lat:.2f},{lon:.2f}"
+    cached = _cache_get(key)
+    if cached is not None:
+        return cached
     last_exc = ""
     for attempt in range(3):
         try:
@@ -114,7 +146,9 @@ def load_aqi(lat: float, lon: float) -> dict[str, Any]:
                 timeout=20,
             )
             r.raise_for_status()
-            return r.json()
+            result = r.json()
+            _cache_set(key, result)
+            return result
         except Exception as e:
             last_exc = f"{type(e).__name__}: {e}"
             if attempt < 2:
