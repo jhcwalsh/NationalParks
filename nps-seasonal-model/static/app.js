@@ -298,6 +298,7 @@ function resetToOverviewTab() {
   el("webcams-tab").hidden = true;
   el("camping-tab").hidden = true;
   el("alerts-tab").hidden = true;
+  el("cancellations-tab").hidden = true;
   el("tab-placeholder").hidden = true;
 }
 
@@ -320,11 +321,14 @@ function wireTabs() {
 
   const alertsTab = el("alerts-tab");
 
+  const cancellationsTab = el("cancellations-tab");
+
   const hideAll = () => {
     overviewSections.forEach((s) => (s.style.display = "none"));
     webcamsTab.hidden = true;
     campingTab.hidden = true;
     alertsTab.hidden = true;
+    cancellationsTab.hidden = true;
     placeholder.hidden = true;
   };
 
@@ -345,6 +349,9 @@ function wireTabs() {
       } else if (tab === "alerts") {
         alertsTab.hidden = false;
         loadAlertsDetail();
+      } else if (tab === "cancellations") {
+        cancellationsTab.hidden = false;
+        loadCancellations();
       } else {
         placeholder.hidden = false;
       }
@@ -660,5 +667,222 @@ function renderAlertsDetail(data) {
 
       wrap.appendChild(card);
     }
+  }
+}
+
+// ── Cancellations tab ───────────────────────────────────────────────────
+const CX_USER_ID = "local-user";  // simple client-side user ID
+let cxFacilitiesLoaded = false;
+let cxFormWired = false;
+
+async function loadCancellations() {
+  // Load facilities into dropdown (once)
+  if (!cxFacilitiesLoaded) {
+    try {
+      const r = await fetch("/api/alerts/facilities");
+      if (r.ok) {
+        const facilities = await r.json();
+        const select = el("cx-facility");
+        for (const f of facilities) {
+          const opt = document.createElement("option");
+          opt.value = f.facility_id;
+          opt.textContent = `${f.facility_name} (${f.park_code})`;
+          opt.dataset.parkName = `${f.facility_name}`;
+          select.appendChild(opt);
+        }
+        cxFacilitiesLoaded = true;
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  // Set default arrival date to tomorrow
+  const arrivalInput = el("cx-arrival");
+  if (!arrivalInput.value) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    arrivalInput.value = tomorrow.toISOString().split("T")[0];
+  }
+
+  // Wire up form (once)
+  if (!cxFormWired) {
+    el("cx-form").addEventListener("submit", handleCxSubmit);
+    cxFormWired = true;
+  }
+
+  // Load existing scans
+  await loadCxScans();
+
+  // Load status
+  await loadCxStatus();
+}
+
+async function handleCxSubmit(ev) {
+  ev.preventDefault();
+  const errEl = el("cx-error");
+  errEl.hidden = true;
+
+  const facilitySelect = el("cx-facility");
+  const selectedOption = facilitySelect.options[facilitySelect.selectedIndex];
+
+  const body = {
+    user_id: CX_USER_ID,
+    facility_id: facilitySelect.value,
+    park_name: selectedOption.dataset.parkName || selectedOption.textContent,
+    arrival_date: el("cx-arrival").value,
+    flexible_arrival: el("cx-flexible").checked,
+    num_nights: parseInt(el("cx-nights").value, 10),
+    site_type: el("cx-type").value,
+    notify_email: el("cx-email").value || null,
+    notify_sms: el("cx-sms").value || null,
+  };
+
+  // Client-side check: at least one channel
+  if (!body.notify_email && !body.notify_sms) {
+    errEl.textContent = "Please provide an email or phone number for alerts.";
+    errEl.hidden = false;
+    return;
+  }
+
+  const btn = el("cx-submit");
+  btn.disabled = true;
+  btn.textContent = "Creating…";
+
+  try {
+    const r = await fetch("/api/alerts/scans", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) {
+      const data = await r.json().catch(() => ({}));
+      const detail = data.detail;
+      let msg = `Error ${r.status}`;
+      if (typeof detail === "string") {
+        msg = detail;
+      } else if (Array.isArray(detail)) {
+        msg = detail.map((d) => d.msg || d.message || JSON.stringify(d)).join("; ");
+      }
+      throw new Error(msg);
+    }
+
+    // Success — reload scans
+    await loadCxScans();
+    el("cx-form").reset();
+
+    // Reset arrival date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    el("cx-arrival").value = tomorrow.toISOString().split("T")[0];
+
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.hidden = false;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Start Watching";
+  }
+}
+
+async function loadCxScans() {
+  const section = el("cx-scans-section");
+  const wrap = el("cx-scans-list");
+
+  try {
+    const r = await fetch(`/api/alerts/scans/user/${CX_USER_ID}?active=false`);
+    if (!r.ok) return;
+    const scans = await r.json();
+
+    if (scans.length === 0) {
+      section.hidden = true;
+      return;
+    }
+
+    section.hidden = false;
+    wrap.innerHTML = "";
+
+    for (const s of scans) {
+      const card = document.createElement("div");
+      card.className = `cx-scan-card ${s.active ? "" : "paused"}`;
+
+      const header = document.createElement("div");
+      header.className = "cx-scan-header";
+
+      const name = document.createElement("p");
+      name.className = "cx-scan-name";
+      name.textContent = s.park_name;
+      header.appendChild(name);
+
+      const badge = document.createElement("span");
+      badge.className = `cx-badge ${s.active ? "active" : "paused"}`;
+      badge.textContent = s.active ? "Active" : "Paused";
+      header.appendChild(badge);
+
+      card.appendChild(header);
+
+      const details = document.createElement("div");
+      details.className = "cx-scan-details";
+
+      const arrival = new Date(s.arrival_date + "T12:00:00");
+      const dateStr = arrival.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const flex = s.flexible_arrival ? " (±2 days)" : "";
+
+      details.innerHTML = `
+        <p>${dateStr}${flex} · ${s.num_nights} night${s.num_nights !== 1 ? "s" : ""}</p>
+        <p>Type: ${s.site_type} · Alerts sent: ${s.alert_count}</p>
+      `;
+      card.appendChild(details);
+
+      // Actions
+      const actions = document.createElement("div");
+      actions.className = "cx-scan-actions";
+
+      if (s.active) {
+        const pauseBtn = document.createElement("button");
+        pauseBtn.className = "cx-action-btn pause";
+        pauseBtn.textContent = "Pause";
+        pauseBtn.addEventListener("click", async () => {
+          await fetch(`/api/alerts/scans/${s.id}`, { method: "DELETE" });
+          await loadCxScans();
+        });
+        actions.appendChild(pauseBtn);
+      } else {
+        const resumeBtn = document.createElement("button");
+        resumeBtn.className = "cx-action-btn resume";
+        resumeBtn.textContent = "Resume";
+        resumeBtn.addEventListener("click", async () => {
+          await fetch(`/api/alerts/scans/${s.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ active: true }),
+          });
+          await loadCxScans();
+        });
+        actions.appendChild(resumeBtn);
+      }
+
+      card.appendChild(actions);
+      wrap.appendChild(card);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+async function loadCxStatus() {
+  const wrap = el("cx-status");
+  try {
+    const r = await fetch("/api/alerts/status");
+    if (!r.ok) return;
+    const s = await r.json();
+    const parts = [
+      `${s.active_scans} active scan${s.active_scans !== 1 ? "s" : ""}`,
+      `${s.facilities_monitored} campground${s.facilities_monitored !== 1 ? "s" : ""} monitored`,
+      `${s.alerts_sent_today} alert${s.alerts_sent_today !== 1 ? "s" : ""} sent today`,
+    ];
+    wrap.innerHTML = `<p class="cx-status-text">${parts.join(" · ")}</p>`;
+    if (s.last_poll_event) {
+      const d = new Date(s.last_poll_event);
+      wrap.innerHTML += `<p class="cx-status-sub">Last activity: ${d.toLocaleString()}</p>`;
+    }
+  } catch (e) {
+    wrap.innerHTML = "";
   }
 }

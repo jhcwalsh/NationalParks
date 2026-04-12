@@ -96,6 +96,66 @@
       <p class="webcams-note" id="webcams-note"></p>
     </section>
 
+    <section id="cancellations-tab" class="cancellations-tab" hidden>
+      <h4 class="section-label">Campsite Cancellation Alerts</h4>
+      <p class="cx-intro">Get notified when a campsite opens up. We monitor Recreation.gov and alert you instantly.</p>
+
+      <!-- New scan form -->
+      <form id="cx-form" class="cx-form">
+        <div class="cx-field">
+          <label for="cx-facility">Campground</label>
+          <select id="cx-facility" required>
+            <option value="">Select a campground…</option>
+          </select>
+        </div>
+        <div class="cx-row">
+          <div class="cx-field cx-half">
+            <label for="cx-arrival">Arrival date</label>
+            <input type="date" id="cx-arrival" required>
+          </div>
+          <div class="cx-field cx-half">
+            <label for="cx-nights">Nights</label>
+            <input type="number" id="cx-nights" min="1" max="30" value="2" required>
+          </div>
+        </div>
+        <div class="cx-row">
+          <div class="cx-field cx-half">
+            <label for="cx-type">Site type</label>
+            <select id="cx-type">
+              <option value="any">Any</option>
+              <option value="tent">Tent</option>
+              <option value="rv">RV</option>
+              <option value="group">Group</option>
+            </select>
+          </div>
+          <div class="cx-field cx-half">
+            <label class="cx-checkbox-label">
+              <input type="checkbox" id="cx-flexible"> Flexible dates (±2 days)
+            </label>
+          </div>
+        </div>
+        <div class="cx-field">
+          <label for="cx-email">Email for alerts</label>
+          <input type="email" id="cx-email" placeholder="you@example.com" required>
+        </div>
+        <div class="cx-field">
+          <label for="cx-sms">Phone for SMS (optional)</label>
+          <input type="tel" id="cx-sms" placeholder="+14155551234">
+        </div>
+        <button type="submit" class="cx-submit" id="cx-submit">Start Watching</button>
+        <p id="cx-error" class="cx-error" hidden></p>
+      </form>
+
+      <!-- Active scans list -->
+      <div id="cx-scans-section" class="cx-scans-section" hidden>
+        <h4 class="section-label">Your Active Scans</h4>
+        <div id="cx-scans-list" class="cx-scans-list"></div>
+      </div>
+
+      <!-- Poller status -->
+      <div id="cx-status" class="cx-status"></div>
+    </section>
+
     <div id="tab-placeholder" class="tab-placeholder" hidden>
       <p>Coming soon.</p>
     </div>
