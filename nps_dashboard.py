@@ -45,16 +45,6 @@ try:
 except ImportError:
     _CAMPSITES_AVAILABLE = False
 
-# Shared park-conditions helpers (PARK_COORDS + weather/AQI/fire loaders).
-# These live in nps-seasonal-model/src/conditions.py so the FastAPI mobile
-# service can reuse them without depending on Streamlit.
-from conditions import (
-    PARK_COORDS,
-    load_active_fires as _load_active_fires,
-    load_aqi as _load_aqi,
-    load_weather as _load_weather,
-)
-
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="NPS Park Dashboard",
@@ -182,7 +172,6 @@ LIMIT    = 500
 
 DB_PATH      = Path(__file__).parent / "nps-seasonal-model" / "data" / "nps.db"
 PREVIEW_CSV  = Path(__file__).parent / "campsite_preview.csv"
-WEBCAMS_JSON = Path(__file__).parent / "webcams.json"
 
 PLOTLY_LAYOUT = dict(
     paper_bgcolor="#0f1923",
@@ -193,24 +182,6 @@ PLOTLY_LAYOUT = dict(
 
 MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun",
                "Jul","Aug","Sep","Oct","Nov","Dec"]
-
-# PARK_COORDS is re-exported from nps-seasonal-model/src/conditions.py
-# (imported at the top of this file) so the Streamlit dashboard and the
-# FastAPI mobile service share one source of truth.
-
-# WMO weather-code → (emoji, description)
-WMO: dict[int, tuple[str, str]] = {
-    0:  ("☀️",  "Clear sky"),       1:  ("🌤️", "Mainly clear"),
-    2:  ("⛅",  "Partly cloudy"),   3:  ("☁️",  "Overcast"),
-    45: ("🌫️", "Fog"),             48: ("🌫️", "Icy fog"),
-    51: ("🌦️", "Light drizzle"),  53: ("🌦️", "Drizzle"),       55: ("🌧️", "Heavy drizzle"),
-    61: ("🌧️", "Slight rain"),    63: ("🌧️", "Moderate rain"),  65: ("🌧️", "Heavy rain"),
-    71: ("🌨️", "Slight snow"),    73: ("🌨️", "Moderate snow"),  75: ("🌨️", "Heavy snow"),
-    77: ("🌨️", "Snow grains"),
-    80: ("🌦️", "Slight showers"), 81: ("🌧️", "Showers"),        82: ("⛈️",  "Heavy showers"),
-    85: ("🌨️", "Snow showers"),   86: ("🌨️", "Heavy snow showers"),
-    95: ("⛈️",  "Thunderstorm"),  96: ("⛈️",  "Thunderstorm + hail"), 99: ("⛈️",  "Thunderstorm + hail"),
-}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -283,51 +254,6 @@ def load_api_parks(api_key: str) -> pd.DataFrame:
             "images":            p.get("images", []),
         })
     return pd.DataFrame(rows)
-
-
-@st.cache_data(ttl=3600, show_spinner=False)
-def load_nps_campgrounds(api_key: str) -> pd.DataFrame:
-    """
-    Fetch all NPS campgrounds and return per-park FCFS + reservable site counts.
-
-    Uses the NPS Developer API /campgrounds endpoint which includes
-    numberOfSitesFirstComeFirstServe and numberOfSitesReservable fields.
-    Filtered to the 63 national park unit codes.
-    """
-    if not api_key or not _CAMPSITES_AVAILABLE:
-        return pd.DataFrame(columns=["unit_code", "nps_fcfs_sites", "nps_reservable_sites"])
-
-    np_codes = {c.lower() for c in _nps_campsites.NATIONAL_PARKS}
-    raw = nps_get("/campgrounds", api_key)
-    if not raw:
-        return pd.DataFrame(columns=["unit_code", "nps_fcfs_sites", "nps_reservable_sites"])
-
-    rows: list[dict] = []
-    for cg in raw:
-        park_code = str(cg.get("parkCode", "")).lower()
-        if park_code not in np_codes:
-            continue
-        def _int(val: str) -> int:
-            try:
-                return int(val) if val else 0
-            except (ValueError, TypeError):
-                return 0
-        rows.append({
-            "unit_code":    park_code.upper(),
-            "cg_name":      cg.get("name", ""),
-            "fcfs":         _int(cg.get("numberOfSitesFirstComeFirstServe", 0)),
-            "reservable":   _int(cg.get("numberOfSitesReservable", 0)),
-        })
-
-    if not rows:
-        return pd.DataFrame(columns=["unit_code", "nps_fcfs_sites", "nps_reservable_sites"])
-
-    df = pd.DataFrame(rows)
-    return (
-        df.groupby("unit_code")
-          .agg(nps_fcfs_sites=("fcfs", "sum"), nps_reservable_sites=("reservable", "sum"))
-          .reset_index()
-    )
 
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -419,147 +345,6 @@ def score_color(score: float) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Park Conditions helpers  (tab 8)
-# ══════════════════════════════════════════════════════════════════════════════
-
-@st.cache_data(ttl=1800, show_spinner=False)
-def load_weather(lat: float, lon: float) -> dict:
-    """Thin Streamlit cache wrapper around conditions.load_weather."""
-    return _load_weather(lat, lon)
-
-
-@st.cache_data(ttl=1800, show_spinner=False)
-def load_aqi(lat: float, lon: float) -> dict:
-    """Thin Streamlit cache wrapper around conditions.load_aqi."""
-    return _load_aqi(lat, lon)
-
-
-@st.cache_data(ttl=600, show_spinner=False)
-def load_park_events(park_code: str, api_key: str) -> list:
-    if not api_key:
-        return []
-    return nps_get("/events", api_key, {"parkCode": park_code.lower()})
-
-
-@st.cache_data(ttl=3600, show_spinner=False)
-def load_park_webcams(park_code: str, api_key: str) -> list:
-    if not api_key:
-        return []
-    return nps_get("/webcams", api_key, {"parkCode": park_code.lower()})
-
-
-def _aqi_color(aqi: float) -> str:
-    if aqi <= 50:  return "#27ae60"
-    if aqi <= 100: return "#f1c40f"
-    if aqi <= 150: return "#e67e22"
-    if aqi <= 200: return "#c0392b"
-    if aqi <= 300: return "#8e44ad"
-    return "#7f0000"
-
-def _aqi_label(aqi: float) -> str:
-    if aqi <= 50:  return "Good"
-    if aqi <= 100: return "Moderate"
-    if aqi <= 150: return "Unhealthy for Sensitive Groups"
-    if aqi <= 200: return "Unhealthy"
-    if aqi <= 300: return "Very Unhealthy"
-    return "Hazardous"
-
-def _wind_dir(deg: float) -> str:
-    return ["N","NE","E","SE","S","SW","W","NW"][round(float(deg) / 45) % 8]
-
-
-# Coastal parks → nearest NOAA tide station (id, description)
-TIDE_STATIONS: dict[str, tuple[str, str]] = {
-    "ACAD": ("8413320", "Bar Harbor, ME"),
-    "BISC": ("8723214", "Virginia Key, FL"),
-    "CHIS": ("9411340", "Santa Barbara, CA"),
-    "DRTO": ("8724580", "Key West, FL"),
-    "EVER": ("8723970", "Flamingo, FL"),
-    "GLBA": ("9452210", "Juneau, AK"),
-    "KATM": ("9457292", "Kodiak, AK"),
-    "KEFJ": ("9455920", "Seward, AK"),
-    "OLYM": ("9444090", "Port Angeles, WA"),
-    "REDW": ("9419750", "Crescent City, CA"),
-    "VIIS": ("9751401", "Charlotte Amalie, USVI"),
-    "NPSA": ("1770000", "Pago Pago, American Samoa"),
-}
-
-
-@st.cache_data(ttl=900, show_spinner=False)
-def load_usgs_gauges(lat: float, lon: float) -> list:
-    """Active USGS stream gauges within ~40 miles of the park (no key needed)."""
-    try:
-        r = requests.get(
-            "https://waterservices.usgs.gov/nwis/iv/",
-            params={
-                "format": "json",
-                "bBox": f"{lon-0.6:.4f},{lat-0.6:.4f},{lon+0.6:.4f},{lat+0.6:.4f}",
-                "parameterCd": "00060,00065",
-                "siteType": "ST",
-                "siteStatus": "active",
-            },
-            timeout=15,
-        )
-        r.raise_for_status()
-        ts_list = r.json().get("value", {}).get("timeSeries", [])
-        gauges: dict[str, dict] = {}
-        for ts in ts_list:
-            site      = ts.get("sourceInfo", {})
-            site_code = (site.get("siteCode") or [{}])[0].get("value", "")
-            site_name = site.get("siteName", "Unknown gauge")
-            var_code  = (ts.get("variable", {}).get("variableCode") or [{}])[0].get("value", "")
-            values    = (ts.get("values") or [{}])[0].get("value", [])
-            latest    = values[-1].get("value", "") if values else ""
-            unit      = ts.get("variable", {}).get("unit", {}).get("unitAbbreviation", "")
-            if site_code not in gauges:
-                gauges[site_code] = {"name": site_name.title(), "code": site_code}
-            try:
-                fval = float(latest)
-                if fval > -999000:
-                    if var_code == "00060":
-                        gauges[site_code]["discharge"] = f"{fval:,.0f} {unit}"
-                    elif var_code == "00065":
-                        gauges[site_code]["gage_height"] = f"{fval:.1f} {unit}"
-            except (ValueError, TypeError):
-                pass
-        return list(gauges.values())[:5]
-    except Exception:
-        return []
-
-
-@st.cache_data(ttl=3600, show_spinner=False)
-def load_noaa_tides(station_id: str) -> list:
-    """Next 48 h high/low tide predictions from NOAA (no key needed)."""
-    from datetime import datetime as _dt
-    try:
-        r = requests.get(
-            "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
-            params={
-                "product":    "predictions",
-                "station":    station_id,
-                "datum":      "MLLW",
-                "time_zone":  "lst_ldt",
-                "interval":   "hilo",
-                "units":      "english",
-                "format":     "json",
-                "begin_date": _dt.utcnow().strftime("%Y%m%d"),
-                "range":      48,
-            },
-            timeout=10,
-        )
-        r.raise_for_status()
-        return r.json().get("predictions", [])
-    except Exception:
-        return []
-
-
-@st.cache_data(ttl=1800, show_spinner=False)
-def load_active_fires(lat: float, lon: float) -> list:
-    """Thin Streamlit cache wrapper around conditions.load_active_fires."""
-    return _load_active_fires(lat, lon)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
 # Campsite availability helpers  (tab 7)
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -572,18 +357,6 @@ def load_campsite_preview_csv() -> pd.DataFrame:
     if "has_campgrounds" in df.columns:
         df["has_campgrounds"] = df["has_campgrounds"].astype(bool)
     return df
-
-
-@st.cache_data(ttl=86400, show_spinner=False)
-def load_webcams_json() -> dict:
-    """Load pre-fetched webcams.json committed to the repository."""
-    if not WEBCAMS_JSON.exists():
-        return {}
-    import json
-    try:
-        return json.loads(WEBCAMS_JSON.read_text())
-    except Exception:
-        return {}
 
 
 @st.cache_data(ttl=86400, show_spinner=False)
@@ -901,17 +674,11 @@ elif not api_key:
     )
 
 
-# ── National park code set (used by tabs 1 & 3) ──────────────────────────────
-_np_codes = (
-    {c.lower() for c in _nps_campsites.NATIONAL_PARKS}
-    if _CAMPSITES_AVAILABLE else set()
-)
-
 # ══════════════════════════════════════════════════════════════════════════════
 # Tabs
 # ══════════════════════════════════════════════════════════════════════════════
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📋 Parks Overview",
     "📊 Busyness Rankings",
     "🔍 Park Detail",
@@ -919,8 +686,6 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "⚖️ Compare Parks",
     "💡 Recommendations",
     "⛺ Campsite Availability",
-    "🌤️ Park Conditions",
-    "📷 Webcams",
 ])
 
 _NO_API = "Enter your NPS API key in the sidebar to load this tab."
@@ -933,22 +698,10 @@ with tab1:
     if parks_df.empty:
         st.info(_NO_API)
     else:
-        st.markdown('<div class="section-header">National Parks</div>', unsafe_allow_html=True)
-
-        # Restrict to the 63 designated national parks, then apply state filter
-        np_df = (
-            parks_df[parks_df["park_code"].str.lower().isin(_np_codes)]
-            if _np_codes else
-            parks_df[parks_df["designation"].str.contains("National Park", case=False, na=False)]
-        )
-        if state_filter.strip() and not np_df.empty:
-            wanted = {s.strip().upper() for s in state_filter.split(",") if s.strip()}
-            np_df = np_df[np_df["states"].apply(
-                lambda s: bool(wanted & {x.strip().upper() for x in str(s).split(",")})
-            )]
+        st.markdown('<div class="section-header">All Parks</div>', unsafe_allow_html=True)
 
         search = st.text_input("Search park name", "", key="search_overview")
-        display = np_df.copy()
+        display = filtered.copy()
         if search.strip():
             display = display[display["name"].str.contains(search.strip(), case=False, na=False)]
 
@@ -957,6 +710,28 @@ with tab1:
             "amenities": "Amenities", "url": "URL",
         })
         st.dataframe(show_df, use_container_width=True, hide_index=True, height=420)
+
+        st.markdown('<div class="section-header">Parks by Designation</div>', unsafe_allow_html=True)
+        desig_counts = (
+            filtered["designation"].value_counts()
+            .reset_index()
+            .rename(columns={"designation": "Designation", "count": "Count"})
+            .head(20)
+        )
+        fig_desig = px.bar(
+            desig_counts, x="Count", y="Designation", orientation="h",
+            color="Count",
+            color_continuous_scale=[[0,"#1a3a52"],[0.5,"#1a6fa8"],[1,"#4da6de"]],
+            template="plotly_dark",
+        )
+        fig_desig.update_layout(
+            paper_bgcolor="#0f1923", plot_bgcolor="#0f1923",
+            margin=dict(l=0, r=0, t=10, b=0),
+            coloraxis_showscale=False,
+            yaxis=dict(autorange="reversed"),
+            height=480,
+        )
+        st.plotly_chart(fig_desig, use_container_width=True)
 
         st.markdown('<div class="section-header">Park Locations</div>', unsafe_allow_html=True)
         map_df = parks_df.dropna(subset=["lat","lon"])
@@ -1041,6 +816,10 @@ with tab3:
     else:
         st.markdown('<div class="section-header">Park Detail View</div>', unsafe_allow_html=True)
 
+        _np_codes = (
+            {c.lower() for c in _nps_campsites.NATIONAL_PARKS}
+            if _CAMPSITES_AVAILABLE else set()
+        )
         _detail_df = (
             parks_df[parks_df["park_code"].str.lower().isin(_np_codes)]
             if _np_codes else
@@ -1503,21 +1282,16 @@ with tab7:
     with col_btn:
         if ridb_key:
             if st.button("Refresh Live Data", key="t7_refresh"):
-                st.session_state["t7_live_fetch"] = True
                 load_campsite_availability.clear()
                 load_park_facility_map.clear()
                 load_campsite_preview_csv.clear()
 
-    # ── Load data: CSV by default; live fetch only on explicit Refresh ─────────
-    # The RIDB key may be set in the environment (e.g. on Render) but that should
-    # not trigger background API calls — only the Refresh button should.
-    do_live_fetch = ridb_key and st.session_state.get("t7_live_fetch", False)
-
-    if do_live_fetch:
+    # ── Load data: live fetch or fall back to pre-fetched CSV ─────────────────
+    if ridb_key:
         t7_days = 30
         with st.spinner(
             "Fetching campsite availability for 63 national parks…  "
-            "This may take 1–2 minutes."
+            "First load may take 1–2 minutes."
         ):
             camp_df = load_campsite_availability(
                 ridb_key,
@@ -1527,39 +1301,22 @@ with tab7:
             )
         if camp_df.empty:
             st.warning("No live data returned. Check your RIDB API key.")
-            camp_df = preview_df
+            camp_df = preview_df   # fall back to pre-fetched if available
     else:
         camp_df = preview_df
-        t7_days = int(
-            (pd.to_datetime(preview_df["window_end"].iloc[0]) -
-             pd.to_datetime(preview_df["window_start"].iloc[0])).days
-        ) if (has_preview and "window_end" in preview_df.columns
-              and "window_start" in preview_df.columns) else 30
+        t7_days = int(preview_df["window_start"].apply(
+            lambda s: (pd.to_datetime(preview_df["window_end"].iloc[0]) -
+                       pd.to_datetime(preview_df["window_start"].iloc[0])).days
+        ).iloc[0]) if (has_preview and "window_end" in preview_df.columns
+                       and "window_start" in preview_df.columns) else 30
 
     if camp_df.empty:
         st.stop()
 
-    # ── Merge NPS API campground counts (FCFS) ────────────────────────────────
-    nps_cg_df = load_nps_campgrounds(api_key) if api_key else pd.DataFrame()
-    if not nps_cg_df.empty:
-        camp_df = camp_df.merge(nps_cg_df[["unit_code", "nps_fcfs_sites"]],
-                                on="unit_code", how="left")
-        camp_df["nps_fcfs_sites"] = camp_df["nps_fcfs_sites"].fillna(0).astype(int)
-    else:
-        camp_df["nps_fcfs_sites"] = 0
-
-    # ── Park filter dropdown ──────────────────────────────────────────────────
-    park_options = ["All Parks"] + sorted(
-        camp_df["park_name"].dropna().unique().tolist()
-    )
-    selected_park = st.selectbox("Filter by park", park_options, index=0, key="t7_park_filter")
-    if selected_park != "All Parks":
-        camp_df = camp_df[camp_df["park_name"] == selected_park]
-
     # ── Summary metrics ───────────────────────────────────────────────────────
     parks_with_camps = camp_df[camp_df["has_campgrounds"].astype(bool)]
     total_reservable = int(parks_with_camps["n_reservable_sites"].sum())
-    total_fcfs       = int(camp_df["nps_fcfs_sites"].sum())
+    total_fcfs       = int(parks_with_camps["n_fcfs_sites"].sum())
     total_avail      = int(parks_with_camps["avail_nights"].sum())
     avg_pct          = parks_with_camps["pct_available"].dropna().mean()
     fetched_ts       = camp_df["fetched_at"].max() if "fetched_at" in camp_df.columns else "—"
@@ -1567,10 +1324,9 @@ with tab7:
     mc1, mc2, mc3, mc4 = st.columns(4)
     for col, label, value, sub in [
         (mc1, "Total Reservable Sites",   f"{total_reservable:,}",
-         "Recreation.gov reservable"),
-        (mc2, "Total FCFS Sites",
-         f"{total_fcfs:,}" if total_fcfs > 0 else "—",
-         "NPS API · walk-in / first-come" if total_fcfs > 0 else "Enter NPS key to load"),
+         "across all 63 parks"),
+        (mc2, "Total FCFS Sites",         f"{total_fcfs:,}",
+         "first-come-first-served"),
         (mc3, f"Available Site-Nights ({t7_days}d)", f"{total_avail:,}",
          "reservable slots open"),
         (mc4, "Avg % Available",
@@ -1625,7 +1381,7 @@ with tab7:
                 unsafe_allow_html=True)
 
     display_df = parks_with_camps[
-        ["park_name", "n_reservable_sites", "nps_fcfs_sites",
+        ["park_name", "n_reservable_sites", "n_fcfs_sites",
          "avail_nights", "pct_available", "weekend_pct", "weekday_pct",
          "n_facilities"]
     ].copy()
@@ -1636,16 +1392,12 @@ with tab7:
     display_df["pct_available"] = display_df["pct_available"].apply(fmt_pct)
     display_df["weekend_pct"]   = display_df["weekend_pct"].apply(fmt_pct)
     display_df["weekday_pct"]   = display_df["weekday_pct"].apply(fmt_pct)
-    # Show "—" for FCFS when NPS key not provided
-    display_df["nps_fcfs_sites"] = display_df["nps_fcfs_sites"].apply(
-        lambda v: str(int(v)) if total_fcfs > 0 else "—"
-    )
 
     st.dataframe(
         display_df.rename(columns={
             "park_name":          "Park",
-            "n_reservable_sites": "Reservable (Rec.gov)",
-            "nps_fcfs_sites":     "FCFS (NPS)",
+            "n_reservable_sites": "Reservable Sites",
+            "n_fcfs_sites":       "FCFS Sites",
             "avail_nights":       f"Avail Nights ({t7_days}d)",
             "pct_available":      "% Available",
             "weekend_pct":        "Wknd %",
@@ -1706,6 +1458,7 @@ with tab7:
                         fac_rows.append({
                             "Campground":       f.facility_name,
                             "Reservable Sites": f.n_reservable,
+                            "FCFS Sites":       f.n_fcfs,
                             "Avail Nights":     f.available_nights,
                             "% Available":      f"{pct:.1f}%" if pct is not None else "—",
                             "Wknd %": (
@@ -1725,491 +1478,8 @@ with tab7:
     # ── Footer ────────────────────────────────────────────────────────────────
     st.markdown("---")
     st.caption(
-        f"Availability fetched: {str(fetched_ts)[:19] if fetched_ts else '—'} UTC  ·  "
+        f"Data fetched: {str(fetched_ts)[:19] if fetched_ts else '—'} UTC  ·  "
         f"30-day window  ·  "
-        "Reservable site data: [Recreation.gov](https://www.recreation.gov) / [RIDB](https://ridb.recreation.gov)  ·  "
-        "FCFS site counts: [NPS Developer API](https://developer.nps.gov/api/v1) `/campgrounds` "
-        "(requires NPS API key in sidebar)"
-    )
-
-
-# ────────────────────────────────────────────────────────────────────────────────
-# TAB 8 — Park Conditions  (weather · AQI · alerts · events · webcams)
-# ────────────────────────────────────────────────────────────────────────────────
-with tab8:
-    st.markdown('<div class="section-header">Park Conditions</div>', unsafe_allow_html=True)
-
-    # ── Park selector ─────────────────────────────────────────────────────────
-    np_names_sorted = sorted(
-        (name, code) for code, name in (
-            _nps_campsites.NATIONAL_PARKS.items() if _CAMPSITES_AVAILABLE else []
-        )
-    )
-    t8_park_label = st.selectbox(
-        "Select a park",
-        [n for n, _ in np_names_sorted],
-        key="t8_park",
-    )
-    t8_uc = next((c for n, c in np_names_sorted if n == t8_park_label), None)
-
-    if not t8_uc:
-        st.info("Select a park above.")
-        st.stop()
-
-    lat, lon = PARK_COORDS.get(t8_uc, (None, None))
-    if lat is None:
-        st.warning(f"No coordinates available for {t8_park_label}.")
-        st.stop()
-
-    # Fetch all data (cached functions — warm hits are instant)
-    with st.spinner("Loading conditions…"):
-        wx      = load_weather(lat, lon)
-        aqi     = load_aqi(lat, lon)
-        fires   = load_active_fires(lat, lon)
-        gauges  = load_usgs_gauges(lat, lon)
-        tides   = (
-            load_noaa_tides(TIDE_STATIONS[t8_uc][0])
-            if t8_uc in TIDE_STATIONS else []
-        )
-
-    t8_alerts  = (
-        alerts_df[alerts_df["parkCode"].str.lower() == t8_uc.lower()]
-        if not alerts_df.empty else pd.DataFrame()
-    )
-    events   = load_park_events(t8_uc, api_key)
-    webcams  = load_park_webcams(t8_uc, api_key)
-
-    # ── NPS Alerts ────────────────────────────────────────────────────────────
-    st.markdown('<div class="section-header">Active Alerts</div>', unsafe_allow_html=True)
-    if not api_key:
-        st.caption("Enter NPS API key in the sidebar to load alerts.")
-    elif t8_alerts.empty:
-        st.success("No active alerts for this park.")
-    else:
-        full_alerts = [
-            a for a in nps_get("/alerts", api_key, {"parkCode": t8_uc.lower()})
-        ]
-        if not full_alerts:
-            st.success("No active alerts.")
-        for alert in full_alerts:
-            cat   = alert.get("category", "")
-            color = {"Closure": "#c0392b", "Danger": "#e67e22",
-                     "Caution": "#f39c12"}.get(cat, "#1a6fa8")
-            st.markdown(f"""
-            <div class="detail-card" style="border-left-color:{color}; margin-bottom:8px;">
-                <strong>[{cat}] {alert.get("title","")}</strong><br>
-                <small style="color:#7a9bbb">{alert.get("description","")}</small>
-            </div>""", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # ── Weather ───────────────────────────────────────────────────────────────
-    st.markdown('<div class="section-header">Weather</div>', unsafe_allow_html=True)
-
-    if not wx or "_error" in wx:
-        st.warning(f"Weather data unavailable — {wx.get('_error', 'Open-Meteo could not be reached.')}")
-    else:
-        cur = wx.get("current", {})
-        wmo_code  = int(cur.get("weather_code", 0))
-        emoji, desc = WMO.get(wmo_code, ("🌡️", "Unknown"))
-        temp      = cur.get("temperature_2m")
-        feels     = cur.get("apparent_temperature")
-        wind_spd  = cur.get("wind_speed_10m")
-        wind_deg  = cur.get("wind_direction_10m", 0)
-        precip    = cur.get("precipitation")
-        uv        = cur.get("uv_index")
-
-        # Current conditions cards
-        wc1, wc2, wc3, wc4, wc5 = st.columns(5)
-        for col, label, value in [
-            (wc1, "Conditions",   f"{emoji} {desc}"),
-            (wc2, "Temperature",  f"{temp:.0f}°F" if temp is not None else "—"),
-            (wc3, "Feels Like",   f"{feels:.0f}°F" if feels is not None else "—"),
-            (wc4, "Wind",         f"{wind_spd:.0f} mph {_wind_dir(wind_deg)}" if wind_spd is not None else "—"),
-            (wc5, "UV Index",     f"{uv:.0f}" if uv is not None else "—"),
-        ]:
-            with col:
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="label">{label}</div>
-                    <div class="value" style="font-size:20px">{value}</div>
-                </div>""", unsafe_allow_html=True)
-
-        # 7-day forecast
-        st.markdown("**7-Day Forecast**")
-        daily = wx.get("daily", {})
-        if daily.get("time"):
-            cols = st.columns(7)
-            for i, (col, day_date) in enumerate(zip(cols, daily["time"])):
-                d_code  = int((daily.get("weather_code") or [0]*7)[i])
-                d_emoji = WMO.get(d_code, ("🌡️",""))[0]
-                d_hi    = (daily.get("temperature_2m_max") or [None]*7)[i]
-                d_lo    = (daily.get("temperature_2m_min") or [None]*7)[i]
-                d_prec  = (daily.get("precipitation_sum") or [None]*7)[i]
-                d_label = pd.to_datetime(day_date).strftime("%a %-d")
-                hi_str  = f"{d_hi:.0f}°" if d_hi is not None else "—"
-                lo_str  = f"{d_lo:.0f}°" if d_lo is not None else "—"
-                pr_str  = f"{d_prec:.2f}\"" if d_prec else ""
-                with col:
-                    st.markdown(f"""
-                    <div class="metric-card" style="text-align:center;padding:10px 6px">
-                        <div class="label">{d_label}</div>
-                        <div style="font-size:22px">{d_emoji}</div>
-                        <div style="font-size:14px;color:#e8edf2">{hi_str} / {lo_str}</div>
-                        <div class="sub">{pr_str}</div>
-                    </div>""", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # ── Air Quality ───────────────────────────────────────────────────────────
-    st.markdown('<div class="section-header">Air Quality</div>', unsafe_allow_html=True)
-
-    if not aqi or "_error" in aqi:
-        st.warning(f"Air quality data unavailable — {aqi.get('_error', 'Open-Meteo could not be reached.') if aqi else 'Open-Meteo could not be reached.'}")
-    else:
-        aqi_cur  = aqi.get("current", {})
-        aqi_val  = aqi_cur.get("us_aqi")
-        pm25     = aqi_cur.get("pm2_5")
-        pm10     = aqi_cur.get("pm10")
-        ozone    = aqi_cur.get("ozone")
-
-        aq1, aq2, aq3, aq4 = st.columns(4)
-        aqi_c    = _aqi_color(aqi_val) if aqi_val is not None else "#4a6680"
-        aqi_lbl  = _aqi_label(aqi_val) if aqi_val is not None else "—"
-        for col, label, value, border in [
-            (aq1, "US AQI",  f"{int(aqi_val)}" if aqi_val is not None else "—", aqi_c),
-            (aq2, "PM 2.5",  f"{pm25:.1f} μg/m³" if pm25 is not None else "—",  "#1a6fa8"),
-            (aq3, "PM 10",   f"{pm10:.1f} μg/m³" if pm10 is not None else "—",  "#1a6fa8"),
-            (aq4, "Ozone",   f"{ozone:.1f} μg/m³" if ozone is not None else "—","#1a6fa8"),
-        ]:
-            with col:
-                st.markdown(f"""
-                <div class="metric-card" style="border-left-color:{border}">
-                    <div class="label">{label}</div>
-                    <div class="value">{value}</div>
-                    <div class="sub">{aqi_lbl if label == "US AQI" else ""}</div>
-                </div>""", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # ── Sunrise / Sunset ─────────────────────────────────────────────────────
-    if wx:
-        daily = wx.get("daily", {})
-        sr_list = daily.get("sunrise") or []
-        ss_list = daily.get("sunset")  or []
-        if sr_list and ss_list:
-            sr_raw = sr_list[0]   # e.g. "2026-04-11T06:23"
-            ss_raw = ss_list[0]
-            try:
-                sr_str = pd.to_datetime(sr_raw).strftime("%-I:%M %p")
-                ss_str = pd.to_datetime(ss_raw).strftime("%-I:%M %p")
-                # Day length
-                diff_m = int((pd.to_datetime(ss_raw) - pd.to_datetime(sr_raw)).total_seconds() / 60)
-                dl_str = f"{diff_m // 60}h {diff_m % 60}m"
-            except Exception:
-                sr_str = ss_str = dl_str = "—"
-            sd1, sd2, sd3 = st.columns(3)
-            for col, lbl, val in [
-                (sd1, "Sunrise",    f"🌅 {sr_str}"),
-                (sd2, "Sunset",     f"🌇 {ss_str}"),
-                (sd3, "Day Length", f"⏱ {dl_str}"),
-            ]:
-                with col:
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <div class="label">{lbl}</div>
-                        <div class="value" style="font-size:20px">{val}</div>
-                    </div>""", unsafe_allow_html=True)
-            st.markdown("---")
-
-    # ── Active Wildfires ──────────────────────────────────────────────────────
-    st.markdown('<div class="section-header">Active Wildfires (within ~70 miles)</div>', unsafe_allow_html=True)
-    if not fires:
-        st.success("No active wildfires reported within ~70 miles.")
-    else:
-        for fire in fires:
-            name       = fire.get("IncidentName", "Unknown Fire")
-            acres      = fire.get("GISAcres")
-            contained  = fire.get("PercentContained")
-            updated    = fire.get("ModifiedOnDateTime_dt", "")
-            acres_str  = f"{acres:,.0f} acres" if acres else "size unknown"
-            cont_str   = f"{contained:.0f}% contained" if contained is not None else "containment unknown"
-            upd_str    = ""
-            if updated:
-                try:
-                    upd_str = pd.to_datetime(updated, unit="ms").strftime("%b %-d")
-                except Exception:
-                    pass
-            cont_color = "#27ae60" if (contained or 0) >= 75 else "#e67e22" if (contained or 0) >= 30 else "#c0392b"
-            st.markdown(f"""
-            <div class="detail-card" style="border-left-color:{cont_color}; margin-bottom:8px;">
-                <strong>🔥 {name}</strong>
-                <span style="color:#7a9bbb;font-size:12px;margin-left:12px">
-                    {acres_str}  ·  {cont_str}{("  ·  Updated " + upd_str) if upd_str else ""}
-                </span>
-            </div>""", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # ── Water Levels ─────────────────────────────────────────────────────────
-    st.markdown('<div class="section-header">Water Levels</div>', unsafe_allow_html=True)
-
-    if gauges:
-        st.markdown("**Stream Gauges (USGS)**")
-        g_cols = st.columns(min(len(gauges), 3))
-        for i, gauge in enumerate(gauges[:3]):
-            with g_cols[i]:
-                discharge    = gauge.get("discharge", "")
-                gage_height  = gauge.get("gage_height", "")
-                reading_str  = discharge or gage_height or "—"
-                label_str    = "Flow" if discharge else "Stage"
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="label">{gauge["name"][:30]}</div>
-                    <div class="value" style="font-size:16px">{reading_str}</div>
-                    <div class="sub">{label_str} · USGS {gauge["code"]}</div>
-                </div>""", unsafe_allow_html=True)
-    else:
-        st.caption("No USGS stream gauges found within ~40 miles.")
-
-    # Tides — only for coastal parks
-    if t8_uc in TIDE_STATIONS and tides:
-        station_id, station_name = TIDE_STATIONS[t8_uc]
-        if tides:
-            st.markdown(f"**Tides — {station_name} (NOAA)**")
-            tide_cols = st.columns(min(len(tides), 4))
-            for i, tide in enumerate(tides[:4]):
-                t_time = tide.get("t", "")
-                t_type = tide.get("type", "")
-                t_ht   = tide.get("v", "")
-                type_lbl  = "High Tide" if t_type == "H" else "Low Tide"
-                type_emoji = "🌊" if t_type == "H" else "〰️"
-                try:
-                    fmt_time = pd.to_datetime(t_time).strftime("%a %-I:%M %p")
-                except Exception:
-                    fmt_time = t_time
-                with tide_cols[i]:
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <div class="label">{type_emoji} {type_lbl}</div>
-                        <div class="value" style="font-size:16px">{t_ht} ft</div>
-                        <div class="sub">{fmt_time}</div>
-                    </div>""", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # ── Webcams ───────────────────────────────────────────────────────────────
-    if api_key and webcams:
-        st.markdown('<div class="section-header">Webcams</div>', unsafe_allow_html=True)
-        for cam in webcams[:6]:
-            title    = cam.get("title", "Webcam")
-            desc     = cam.get("description", "")
-            url      = cam.get("url", "")
-            img_url  = (cam.get("images") or [{}])[0].get("url", "")
-            c1, c2 = st.columns([1, 3])
-            with c1:
-                if img_url:
-                    st.image(img_url, use_container_width=True)
-            with c2:
-                st.markdown(f"**{title}**")
-                if desc:
-                    st.caption(desc[:200])
-                if url:
-                    st.markdown(f"[View live webcam]({url})")
-        st.markdown("---")
-
-    # ── Upcoming Events ───────────────────────────────────────────────────────
-    if api_key:
-        st.markdown('<div class="section-header">Upcoming Events</div>', unsafe_allow_html=True)
-        if not events:
-            st.caption("No upcoming events found for this park.")
-        else:
-            for ev in events[:8]:
-                title   = ev.get("title", "")
-                dates   = ev.get("dates", "")
-                times   = ev.get("times", [{}])
-                loc     = ev.get("location", "")
-                desc    = ev.get("description", "")
-                fee     = ev.get("isfree", "true")
-                time_str = times[0].get("timestart", "")[:5] if times else ""
-                st.markdown(f"""
-                <div class="detail-card" style="margin-bottom:8px">
-                    <strong>{title}</strong>
-                    <span style="color:#7a9bbb;font-size:12px;margin-left:12px">
-                        {dates} {time_str}{"  ·  " + loc if loc else ""}
-                        {"  ·  Free" if str(fee).lower()=="true" else ""}
-                    </span><br>
-                    <small style="color:#7a9bbb">{(desc or "")[:180]}</small>
-                </div>""", unsafe_allow_html=True)
-    elif not api_key:
-        st.caption("Enter NPS API key in the sidebar to load events and webcams.")
-
-    # ── Footer ────────────────────────────────────────────────────────────────
-    st.markdown("---")
-    st.caption(
-        "Weather & AQI: [Open-Meteo](https://open-meteo.com) (30 min cache)  ·  "
-        "Stream gauges: [USGS Water Services](https://waterservices.usgs.gov) (15 min cache)  ·  "
-        "Tides: [NOAA Tides & Currents](https://tidesandcurrents.noaa.gov) (1 h cache)  ·  "
-        "Wildfires: [NIFC ArcGIS](https://www.nifc.gov) (30 min cache)  ·  "
-        "Alerts & Events: [NPS Developer API](https://developer.nps.gov/api/v1)  ·  "
-        f"Coords: {lat:.2f}°, {lon:.2f}°"
-    )
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Tab 9 — Webcams
-# ══════════════════════════════════════════════════════════════════════════════
-
-with tab9:
-    st.markdown('<div class="section-header">National Park Webcams</div>', unsafe_allow_html=True)
-
-    wc_data = load_webcams_json()
-
-    if not wc_data:
-        st.info(
-            "**No webcam data loaded yet.**\n\n"
-            "Run the following command locally to fetch and test all webcam URLs, "
-            "then commit `webcams.json` to deploy it here:\n\n"
-            "```bash\npython fetch_webcams.py\n```\n\n"
-            "Requires `NPS_API_KEY` in your `.env` file or environment."
-        )
-        st.stop()
-
-    webcams_raw: list[dict] = wc_data.get("webcams", [])
-    fetched_str  = wc_data.get("fetched_at", "unknown")
-
-    # ── Summary metrics ───────────────────────────────────────────────────────
-    total_cams   = len(webcams_raw)
-    active_cams  = sum(1 for c in webcams_raw
-                       if (c.get("status") or {}).get("status", "").lower() == "active"
-                       or str(c.get("status","")).lower() == "active")
-    streaming    = sum(1 for c in webcams_raw if str(c.get("isStreaming","")).lower() == "true")
-    url_ok       = sum(1 for c in webcams_raw if c.get("_url_ok") is True)
-    url_tested   = sum(1 for c in webcams_raw if c.get("_url_ok") is not None)
-
-    sm1, sm2, sm3, sm4 = st.columns(4)
-    for col, label, value in [
-        (sm1, "Total Webcams",    str(total_cams)),
-        (sm2, "Active",           str(active_cams)),
-        (sm3, "Live Streaming",   str(streaming)),
-        (sm4, "URLs Verified OK", f"{url_ok} / {url_tested}" if url_tested else "not tested"),
-    ]:
-        with col:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="label">{label}</div>
-                <div class="value">{value}</div>
-            </div>""", unsafe_allow_html=True)
-
-    st.caption(f"Data fetched {fetched_str} UTC · Source: NPS Developer API")
-    st.markdown("---")
-
-    # ── Filters ───────────────────────────────────────────────────────────────
-    fc1, fc2, fc3 = st.columns([3, 2, 2])
-    with fc1:
-        # Build park list from webcam data
-        park_opts = ["All Parks"] + sorted({
-            c.get("_park_name", "") for c in webcams_raw if c.get("_park_name")
-        })
-        t9_park = st.selectbox("Filter by park", park_opts, key="t9_park")
-    with fc2:
-        t9_status = st.selectbox(
-            "Status", ["All", "Active only", "Inactive only"], key="t9_status"
-        )
-    with fc3:
-        t9_streaming = st.checkbox("Live-streaming only", key="t9_streaming")
-
-    # Apply filters
-    cams = webcams_raw
-    if t9_park != "All Parks":
-        cams = [c for c in cams if c.get("_park_name") == t9_park]
-    if t9_status == "Active only":
-        cams = [c for c in cams
-                if (c.get("status") or {}).get("status", "").lower() == "active"
-                or str(c.get("status","")).lower() == "active"]
-    elif t9_status == "Inactive only":
-        cams = [c for c in cams
-                if (c.get("status") or {}).get("status", "Active").lower() != "active"]
-    if t9_streaming:
-        cams = [c for c in cams if str(c.get("isStreaming","")).lower() == "true"]
-
-    st.caption(f"Showing {len(cams)} of {total_cams} webcams")
-    st.markdown("---")
-
-    # ── Webcam grid ───────────────────────────────────────────────────────────
-    if not cams:
-        st.info("No webcams match the selected filters.")
-    else:
-        COLS = 3
-        for row_start in range(0, len(cams), COLS):
-            cols = st.columns(COLS)
-            for col, cam in zip(cols, cams[row_start:row_start + COLS]):
-                title      = cam.get("title", "Webcam")
-                park_name  = cam.get("_park_name", "")
-                cam_url    = cam.get("url", "")
-                images     = cam.get("images") or []
-                img_url    = images[0].get("url", "") if images else ""
-                is_stream  = str(cam.get("isStreaming","")).lower() == "true"
-                status_obj = cam.get("status") or {}
-                status_str = (status_obj.get("status", "")
-                              if isinstance(status_obj, dict)
-                              else str(status_obj))
-                is_active  = status_str.lower() == "active"
-                url_ok_val = cam.get("_url_ok")
-                url_err    = cam.get("_url_error", "")
-
-                # Status badges
-                status_badge = (
-                    '<span style="background:#27ae60;color:#fff;font-size:10px;'
-                    'padding:2px 7px;border-radius:10px;margin-right:4px">Active</span>'
-                    if is_active else
-                    '<span style="background:#555;color:#ccc;font-size:10px;'
-                    'padding:2px 7px;border-radius:10px;margin-right:4px">Inactive</span>'
-                )
-                stream_badge = (
-                    '<span style="background:#1a6fa8;color:#fff;font-size:10px;'
-                    'padding:2px 7px;border-radius:10px">🔴 Live</span>'
-                    if is_stream else ""
-                )
-                url_badge = ""
-                if url_ok_val is True:
-                    url_badge = ('<span style="background:#27ae60;color:#fff;font-size:10px;'
-                                 'padding:2px 7px;border-radius:10px;margin-left:4px">✓ URL OK</span>')
-                elif url_ok_val is False:
-                    url_badge = ('<span style="background:#c0392b;color:#fff;font-size:10px;'
-                                 'padding:2px 7px;border-radius:10px;margin-left:4px"'
-                                 f' title="{url_err}">✗ URL broken</span>')
-
-                with col:
-                    if img_url:
-                        st.image(img_url, use_container_width=True)
-                    st.markdown(
-                        f'<div style="font-size:11px;color:#7a9bbb;margin-bottom:2px">'
-                        f'{park_name}</div>'
-                        f'<div style="font-weight:600;margin-bottom:4px">{title}</div>'
-                        f'{status_badge}{stream_badge}{url_badge}',
-                        unsafe_allow_html=True,
-                    )
-                    if cam_url:
-                        st.markdown(f"[View webcam →]({cam_url})")
-                    st.markdown("<div style='margin-bottom:16px'></div>",
-                                unsafe_allow_html=True)
-
-    # ── Failed URLs expander ──────────────────────────────────────────────────
-    broken = [c for c in webcams_raw if c.get("_url_ok") is False]
-    if broken:
-        with st.expander(f"Broken URLs ({len(broken)} webcams)", expanded=False):
-            for cam in broken:
-                st.markdown(
-                    f"**{cam.get('_park_name','')} — {cam.get('title','')}**  \n"
-                    f"`{cam.get('url','no url')}`  \n"
-                    f"Error: {cam.get('_url_error','unknown')}  \n"
-                    f"HTTP {cam.get('_url_status','—')}"
-                )
-                st.markdown("---")
-
-    # ── Footer ────────────────────────────────────────────────────────────────
-    st.caption(
-        "Source: [NPS Developer API](https://developer.nps.gov/api/v1) /webcams endpoint  ·  "
-        "Run `python fetch_webcams.py` to refresh data and re-test all URLs."
+        "Source: [Recreation.gov](https://www.recreation.gov) / "
+        "[RIDB](https://ridb.recreation.gov)"
     )
