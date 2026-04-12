@@ -26,7 +26,7 @@ load_dotenv()
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from campsites import NATIONAL_PARKS, discover_campground_facilities
+from campsites import NATIONAL_PARKS, build_park_facility_map
 from conditions import PARK_COORDS
 from alert_engine.db import init_db, _db_path
 
@@ -42,7 +42,7 @@ def main() -> None:
     print("Discovering campground facilities from RIDB...")
     print("(This makes several API calls and may take 1-2 minutes)\n")
 
-    park_map, facility_names, facility_site_counts = discover_campground_facilities(api_key)
+    park_map, facility_names, facility_site_counts = build_park_facility_map(api_key)
 
     # Build the insert list with coordinates from PARK_COORDS
     facilities: list[dict] = []
