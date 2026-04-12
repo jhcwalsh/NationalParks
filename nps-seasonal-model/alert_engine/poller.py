@@ -38,7 +38,7 @@ _client: httpx.AsyncClient | None = None
 def _get_client() -> httpx.AsyncClient:
     global _client
     if _client is None or _client.is_closed:
-        api_key = os.getenv("RECREATION_GOV_API_KEY", "")
+        api_key = os.getenv("RIDB_API_KEY", "")
         headers = {**RECGOV_HEADERS}
         if api_key:
             headers["apikey"] = api_key

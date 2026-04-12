@@ -9,7 +9,7 @@ Usage:
     cd nps-seasonal-model
     python fetch_facilities.py
 
-Requires RECREATION_GOV_API_KEY in .env or environment.
+Requires RIDB_API_KEY in .env or environment.
 """
 
 from __future__ import annotations
@@ -34,9 +34,9 @@ import aiosqlite
 
 
 def main() -> None:
-    api_key = os.getenv("RECREATION_GOV_API_KEY", "")
+    api_key = os.getenv("RIDB_API_KEY", "")
     if not api_key:
-        print("ERROR: Set RECREATION_GOV_API_KEY in .env or environment")
+        print("ERROR: Set RIDB_API_KEY in .env or environment")
         sys.exit(1)
 
     print("Discovering campground facilities from RIDB...")
