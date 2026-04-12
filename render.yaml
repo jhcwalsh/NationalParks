@@ -16,7 +16,17 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r nps-seasonal-model/requirements.txt && python nps-seasonal-model/src/ingest.py --seed-only
-    startCommand: uvicorn src.api:app --app-dir nps-seasonal-model --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn main:app --app-dir nps-seasonal-model --host 0.0.0.0 --port $PORT
     envVars:
       - key: NPS_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: TWILIO_SENDGRID_API_KEY
+        sync: false
+      - key: TWILIO_FROM_EMAIL
         sync: false
