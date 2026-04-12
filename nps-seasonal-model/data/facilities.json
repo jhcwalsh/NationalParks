@@ -1,58 +1,1353 @@
 [
   {
-    "facility_id": "251869",
-    "park_code": "GLAC",
-    "facility_name": "Apgar Campground",
-    "lat": 48.7596,
-    "lon": -113.787
+    "facility_id": "232508",
+    "park_code": "ACAD",
+    "facility_name": "Blackwoods Campground",
+    "lat": 44.35,
+    "lon": -68.21
+  },
+  {
+    "facility_id": "234674",
+    "park_code": "ACAD",
+    "facility_name": "Seawall Campground",
+    "lat": 44.35,
+    "lon": -68.21
+  },
+  {
+    "facility_id": "264293",
+    "park_code": "ACAD",
+    "facility_name": "Duck Harbor Campground",
+    "lat": 44.35,
+    "lon": -68.21
+  },
+  {
+    "facility_id": "251833",
+    "park_code": "ACAD",
+    "facility_name": "Schoodic Woods Campground",
+    "lat": 44.35,
+    "lon": -68.21
+  },
+  {
+    "facility_id": "234059",
+    "park_code": "ARCH",
+    "facility_name": "Devils Garden Campground",
+    "lat": 38.68,
+    "lon": -109.57
+  },
+  {
+    "facility_id": "10288228",
+    "park_code": "BADL",
+    "facility_name": "Cedar Pass Campground ",
+    "lat": 43.85,
+    "lon": -102.34
+  },
+  {
+    "facility_id": "234035",
+    "park_code": "BIBE",
+    "facility_name": "Rio Grande Village (Big Bend, Tx)",
+    "lat": 29.25,
+    "lon": -103.25
+  },
+  {
+    "facility_id": "234078",
+    "park_code": "BIBE",
+    "facility_name": "Cottonwood (Big Bend, Tx)",
+    "lat": 29.25,
+    "lon": -103.25
+  },
+  {
+    "facility_id": "234014",
+    "park_code": "BIBE",
+    "facility_name": "Rio Grande Village Group Campground (Big Bend, Tx)",
+    "lat": 29.25,
+    "lon": -103.25
+  },
+  {
+    "facility_id": "10028875",
+    "park_code": "BIBE",
+    "facility_name": "Big Bend Backcountry Camping",
+    "lat": 29.25,
+    "lon": -103.25
+  },
+  {
+    "facility_id": "234013",
+    "park_code": "BIBE",
+    "facility_name": "Chisos Basin Group Campground (Big Bend, Tx)",
+    "lat": 29.25,
+    "lon": -103.25
+  },
+  {
+    "facility_id": "234038",
+    "park_code": "BIBE",
+    "facility_name": "Chisos Basin Campground (Big Bend, Tx)",
+    "lat": 29.25,
+    "lon": -103.25
+  },
+  {
+    "facility_id": "10078979",
+    "park_code": "BISC",
+    "facility_name": "Elliot Key Campground",
+    "lat": 25.48,
+    "lon": -80.43
+  },
+  {
+    "facility_id": "246814",
+    "park_code": "BISC",
+    "facility_name": "Boca Chita Campground",
+    "lat": 25.48,
+    "lon": -80.43
+  },
+  {
+    "facility_id": "234052",
+    "park_code": "BLCA",
+    "facility_name": "Black Canyon Of The Gunnison South Rim Campground",
+    "lat": 38.57,
+    "lon": -107.72
+  },
+  {
+    "facility_id": "234058",
+    "park_code": "BRCA",
+    "facility_name": "North Campground (Ut)",
+    "lat": 37.57,
+    "lon": -112.18
+  },
+  {
+    "facility_id": "234079",
+    "park_code": "BRCA",
+    "facility_name": "Sunset Campground (Ut)",
+    "lat": 37.57,
+    "lon": -112.18
+  },
+  {
+    "facility_id": "10060971",
+    "park_code": "CANY",
+    "facility_name": "Canyonlands National Park Needles District Group Campsites",
+    "lat": 38.2,
+    "lon": -109.93
+  },
+  {
+    "facility_id": "251535",
+    "park_code": "CANY",
+    "facility_name": "Canyonlands National Park Needles District Campground",
+    "lat": 38.2,
+    "lon": -109.93
+  },
+  {
+    "facility_id": "272245",
+    "park_code": "CARE",
+    "facility_name": "Fruita Campground",
+    "lat": 38.2,
+    "lon": -111.17
+  },
+  {
+    "facility_id": "251709",
+    "park_code": "CARE",
+    "facility_name": "Capitol Reef Group Campground",
+    "lat": 38.2,
+    "lon": -111.17
+  },
+  {
+    "facility_id": "232501",
+    "park_code": "CHIS",
+    "facility_name": "San Miguel Island",
+    "lat": 34.01,
+    "lon": -119.42
+  },
+  {
+    "facility_id": "232497",
+    "park_code": "CHIS",
+    "facility_name": "Santa Rosa Island",
+    "lat": 34.01,
+    "lon": -119.42
+  },
+  {
+    "facility_id": "232502",
+    "park_code": "CHIS",
+    "facility_name": "Anacapa Island",
+    "lat": 34.01,
+    "lon": -119.42
+  },
+  {
+    "facility_id": "232498",
+    "park_code": "CHIS",
+    "facility_name": "Santa Cruz Scorpion",
+    "lat": 34.01,
+    "lon": -119.42
+  },
+  {
+    "facility_id": "261700",
+    "park_code": "CHIS",
+    "facility_name": "Santa Rosa Island Backcountry Beach Camping",
+    "lat": 34.01,
+    "lon": -119.42
+  },
+  {
+    "facility_id": "232500",
+    "park_code": "CHIS",
+    "facility_name": "Santa Barbara Island",
+    "lat": 34.01,
+    "lon": -119.42
+  },
+  {
+    "facility_id": "232499",
+    "park_code": "CHIS",
+    "facility_name": "Santa Cruz Del Norte Backcountry",
+    "lat": 34.01,
+    "lon": -119.42
+  },
+  {
+    "facility_id": "10190876",
+    "park_code": "CONG",
+    "facility_name": "Longleaf Campground",
+    "lat": 33.78,
+    "lon": -80.78
+  },
+  {
+    "facility_id": "10191039",
+    "park_code": "CONG",
+    "facility_name": "Bluff Hike In Camping",
+    "lat": 33.78,
+    "lon": -80.78
+  },
+  {
+    "facility_id": "233367",
+    "park_code": "CUVA",
+    "facility_name": "Cuyahoga Valley National Park Picnic Shelters",
+    "lat": 41.24,
+    "lon": -81.55
+  },
+  {
+    "facility_id": "232496",
+    "park_code": "DEVA",
+    "facility_name": "Furnace Creek Campground",
+    "lat": 36.24,
+    "lon": -116.82
+  },
+  {
+    "facility_id": "10303151",
+    "park_code": "DEVA",
+    "facility_name": "Death Valley Backcountry Roadside Camping",
+    "lat": 36.24,
+    "lon": -116.82
   },
   {
     "facility_id": "232493",
     "park_code": "GLAC",
-    "facility_name": "Fish Creek",
-    "lat": 48.5,
-    "lon": -113.98
+    "facility_name": "Fish Creek Campground",
+    "lat": 48.7,
+    "lon": -113.72
   },
   {
-    "facility_id": "234869",
+    "facility_id": "234669",
+    "park_code": "GLAC",
+    "facility_name": "Apgar Group Sites",
+    "lat": 48.7,
+    "lon": -113.72
+  },
+  {
+    "facility_id": "10171274",
+    "park_code": "GLAC",
+    "facility_name": "Apgar Campground",
+    "lat": 48.7,
+    "lon": -113.72
+  },
+  {
+    "facility_id": "10363618",
+    "park_code": "GLAC",
+    "facility_name": "Rising Sun Campground",
+    "lat": 48.7,
+    "lon": -113.72
+  },
+  {
+    "facility_id": "258799",
+    "park_code": "GLAC",
+    "facility_name": "Two Medicine Campground",
+    "lat": 48.7,
+    "lon": -113.72
+  },
+  {
+    "facility_id": "258796",
+    "park_code": "GLAC",
+    "facility_name": "Avalanche Campground",
+    "lat": 48.7,
+    "lon": -113.72
+  },
+  {
+    "facility_id": "258795",
+    "park_code": "GLAC",
+    "facility_name": "Sprague Creek Campground",
+    "lat": 48.7,
+    "lon": -113.72
+  },
+  {
+    "facility_id": "251869",
+    "park_code": "GLAC",
+    "facility_name": "Many Glacier Campground",
+    "lat": 48.7,
+    "lon": -113.72
+  },
+  {
+    "facility_id": "232492",
+    "park_code": "GLAC",
+    "facility_name": "St. Mary Campground",
+    "lat": 48.7,
+    "lon": -113.72
+  },
+  {
+    "facility_id": "251958",
+    "park_code": "GRBA",
+    "facility_name": "Grey Cliffs Campground",
+    "lat": 39.0,
+    "lon": -114.3
+  },
+  {
+    "facility_id": "232489",
+    "park_code": "GRCA",
+    "facility_name": "North Rim Campground (Az)",
+    "lat": 36.1,
+    "lon": -112.1
+  },
+  {
+    "facility_id": "232490",
     "park_code": "GRCA",
     "facility_name": "Mather Campground",
-    "lat": 36.0561,
-    "lon": -112.122
+    "lat": 36.1,
+    "lon": -112.1
   },
   {
-    "facility_id": "232450",
+    "facility_id": "234685",
+    "park_code": "GRSA",
+    "facility_name": "Pinon Flats Campground",
+    "lat": 37.73,
+    "lon": -105.51
+  },
+  {
+    "facility_id": "273848",
+    "park_code": "GRSM",
+    "facility_name": "Balsam Mountain Campground",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "10207636",
+    "park_code": "GRSM",
+    "facility_name": "Look Rock Campground",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232478",
+    "park_code": "GRSM",
+    "facility_name": "Deep Creek Group Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232441",
+    "park_code": "GRSM",
+    "facility_name": "Smokemont Group Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232440",
+    "park_code": "GRSM",
+    "facility_name": "Cades Cove Group",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232479",
+    "park_code": "GRSM",
+    "facility_name": "Cosby Campground",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "273821",
+    "park_code": "GRSM",
+    "facility_name": "Big Creek Campground (Great Smoky Mountains National Park)",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232487",
+    "park_code": "GRSM",
+    "facility_name": "Elkmont Campground",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232482",
+    "park_code": "GRSM",
+    "facility_name": "Cataloochee Horse Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "233299",
+    "park_code": "GRSM",
+    "facility_name": "Appalachian Clubhouse",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232483",
+    "park_code": "GRSM",
+    "facility_name": "Round Bottom Horse Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232475",
+    "park_code": "GRSM",
+    "facility_name": "Greenbrier Picnic Pavilion",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232437",
+    "park_code": "GRSM",
+    "facility_name": "Big Creek Group Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232486",
+    "park_code": "GRSM",
+    "facility_name": "Smokemont Campground",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232488",
+    "park_code": "GRSM",
+    "facility_name": "Cades Cove Campground",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232438",
+    "park_code": "GRSM",
+    "facility_name": "Cosby Group Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232476",
+    "park_code": "GRSM",
+    "facility_name": "Twin Creeks Picnic Pavilion",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "233284",
+    "park_code": "GRSM",
+    "facility_name": "Cataloochee Campground",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232477",
+    "park_code": "GRSM",
+    "facility_name": "Metcalf Bottoms Picnic Pavilion",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232439",
+    "park_code": "GRSM",
+    "facility_name": "Cosby Picnic Pavilion",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232481",
+    "park_code": "GRSM",
+    "facility_name": "Tow String Horse Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232484",
+    "park_code": "GRSM",
+    "facility_name": "Big Creek Horse Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232485",
+    "park_code": "GRSM",
+    "facility_name": "Anthony Creek Horse Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232436",
+    "park_code": "GRSM",
+    "facility_name": "Elkmont Group Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "273847",
+    "park_code": "GRSM",
+    "facility_name": "Abram'S Creek Campground",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232434",
+    "park_code": "GRSM",
+    "facility_name": "Cataloochee Group Camp",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "10041304",
+    "park_code": "GRSM",
+    "facility_name": "Deep Creek Campground (Nc)",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "234712",
+    "park_code": "GRSM",
+    "facility_name": "Spence Cabin",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232435",
+    "park_code": "GRSM",
+    "facility_name": "Deep Creek Picnic Pavilion",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "232480",
+    "park_code": "GRSM",
+    "facility_name": "Collins Creek Picnic Pavilion",
+    "lat": 35.68,
+    "lon": -83.53
+  },
+  {
+    "facility_id": "247663",
+    "park_code": "GRTE",
+    "facility_name": "Signal Mountain Campground",
+    "lat": 43.73,
+    "lon": -110.8
+  },
+  {
+    "facility_id": "247785",
+    "park_code": "GRTE",
+    "facility_name": "Lizard Creek Campground",
+    "lat": 43.73,
+    "lon": -110.8
+  },
+  {
+    "facility_id": "258832",
+    "park_code": "GRTE",
+    "facility_name": "Headwaters Campground At Flagg Ranch",
+    "lat": 43.73,
+    "lon": -110.8
+  },
+  {
+    "facility_id": "247661",
+    "park_code": "GRTE",
+    "facility_name": "Gros Ventre Campground",
+    "lat": 43.73,
+    "lon": -110.8
+  },
+  {
+    "facility_id": "10099575",
+    "park_code": "GRTE",
+    "facility_name": "Colter Bay Tent Village",
+    "lat": 43.73,
+    "lon": -110.8
+  },
+  {
+    "facility_id": "10246274",
+    "park_code": "GRTE",
+    "facility_name": "Colter Bay Marina End Ties",
+    "lat": 43.73,
+    "lon": -110.8
+  },
+  {
+    "facility_id": "258830",
+    "park_code": "GRTE",
+    "facility_name": "Colter Bay Campground",
+    "lat": 43.73,
+    "lon": -110.8
+  },
+  {
+    "facility_id": "258831",
+    "park_code": "GRTE",
+    "facility_name": "Colter Bay Rv Park",
+    "lat": 43.73,
+    "lon": -110.8
+  },
+  {
+    "facility_id": "258852",
+    "park_code": "GUMO",
+    "facility_name": "Dog Canyon Campground",
+    "lat": 31.92,
+    "lon": -104.87
+  },
+  {
+    "facility_id": "10104621",
+    "park_code": "GUMO",
+    "facility_name": "Frijole Horse Corral Campground",
+    "lat": 31.92,
+    "lon": -104.87
+  },
+  {
+    "facility_id": "258851",
+    "park_code": "GUMO",
+    "facility_name": "Pine Springs Campground",
+    "lat": 31.92,
+    "lon": -104.87
+  },
+  {
+    "facility_id": "10177495",
+    "park_code": "INDU",
+    "facility_name": "Central Avenue Walk-In Sites",
+    "lat": 41.65,
+    "lon": -87.05
+  },
+  {
+    "facility_id": "10177496",
+    "park_code": "INDU",
+    "facility_name": "Dunbar Group Site",
+    "lat": 41.65,
+    "lon": -87.05
+  },
+  {
+    "facility_id": "258887",
+    "park_code": "INDU",
+    "facility_name": "Dunewood Campground",
+    "lat": 41.65,
+    "lon": -87.05
+  },
+  {
+    "facility_id": "10056207",
+    "park_code": "JOTR",
+    "facility_name": "Ryan Campground",
+    "lat": 33.87,
+    "lon": -115.9
+  },
+  {
+    "facility_id": "10053779",
+    "park_code": "JOTR",
+    "facility_name": "Indian Cove Group",
+    "lat": 33.87,
+    "lon": -115.9
+  },
+  {
+    "facility_id": "232473",
+    "park_code": "JOTR",
+    "facility_name": "Black Rock Campground",
+    "lat": 33.87,
+    "lon": -115.9
+  },
+  {
+    "facility_id": "272299",
+    "park_code": "JOTR",
+    "facility_name": "Cottonwood Campground (Ca)",
+    "lat": 33.87,
+    "lon": -115.9
+  },
+  {
+    "facility_id": "232470",
+    "park_code": "JOTR",
+    "facility_name": "Sheep Pass Group",
+    "lat": 33.87,
+    "lon": -115.9
+  },
+  {
+    "facility_id": "272300",
+    "park_code": "JOTR",
+    "facility_name": "Jumbo Rocks Campground",
+    "lat": 33.87,
+    "lon": -115.9
+  },
+  {
+    "facility_id": "232472",
+    "park_code": "JOTR",
+    "facility_name": "Indian Cove Campground",
+    "lat": 33.87,
+    "lon": -115.9
+  },
+  {
+    "facility_id": "234723",
+    "park_code": "JOTR",
+    "facility_name": "Black Rock Equestrian Campground",
+    "lat": 33.87,
+    "lon": -115.9
+  },
+  {
+    "facility_id": "232471",
+    "park_code": "JOTR",
+    "facility_name": "Cottonwood Group",
+    "lat": 33.87,
+    "lon": -115.9
+  },
+  {
+    "facility_id": "232469",
+    "park_code": "KATM",
+    "facility_name": "Fure'S Cabin",
+    "lat": 58.5,
+    "lon": -154.97
+  },
+  {
+    "facility_id": "251861",
+    "park_code": "KEFJ",
+    "facility_name": "Kenai Fjords National Park Cabins",
+    "lat": 59.92,
+    "lon": -149.65
+  },
+  {
+    "facility_id": "253917",
+    "park_code": "KICA",
+    "facility_name": "Sentinel Campground",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "10044761",
+    "park_code": "KICA",
+    "facility_name": "Moraine Campground (Ca)",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "249979",
+    "park_code": "KICA",
+    "facility_name": "Potwisha Campground",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "10124502",
+    "park_code": "KICA",
+    "facility_name": "Azalea Campground",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "234752",
+    "park_code": "KICA",
+    "facility_name": "Sunset Campground (Ca)",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "246864",
+    "park_code": "KICA",
+    "facility_name": "Cold Springs Campground (Ca)",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "10044765",
+    "park_code": "KICA",
+    "facility_name": "Sheep Creek Campground",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "232461",
+    "park_code": "KICA",
+    "facility_name": "Lodgepole Campground-Sequoia And Kings Canyon National Park",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "251008",
+    "park_code": "KICA",
+    "facility_name": "Crystal Springs Campground Mid-Sized Group Sites",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "10044710",
+    "park_code": "KICA",
+    "facility_name": "Atwell Mill Campground",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "10124445",
+    "park_code": "KICA",
+    "facility_name": "Crystal Springs Campground (Ca)",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "234753",
+    "park_code": "KICA",
+    "facility_name": "Canyon View Group Sites",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "232460",
+    "park_code": "KICA",
+    "facility_name": "Dorst Creek Campground-Sequoia And Kings Canyon National Park",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "249982",
+    "park_code": "KICA",
+    "facility_name": "Buckeye Flat Campground",
+    "lat": 36.79,
+    "lon": -118.56
+  },
+  {
+    "facility_id": "259345",
+    "park_code": "LACL",
+    "facility_name": "Priest Rock Cabin",
+    "lat": 60.97,
+    "lon": -153.42
+  },
+  {
+    "facility_id": "233257",
+    "park_code": "LAVO",
+    "facility_name": "Manzanita Lake Camping Cabins (Ca)",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "10047182",
+    "park_code": "LAVO",
+    "facility_name": "Warner Valley Campground",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "10370498",
+    "park_code": "LAVO",
+    "facility_name": "Southwest Campground",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "234039",
+    "park_code": "LAVO",
+    "facility_name": "Manzanita Lake",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "234524",
+    "park_code": "LAVO",
+    "facility_name": "Juniper Lake Group",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "233372",
+    "park_code": "LAVO",
+    "facility_name": "Manzanita Lake Group Campground",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "234041",
+    "park_code": "LAVO",
+    "facility_name": "Summit Lake North",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "233357",
+    "park_code": "LAVO",
+    "facility_name": "Juniper Lake Stock Corral",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "233356",
+    "park_code": "LAVO",
+    "facility_name": "Butte Lake Stock Corral",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "234156",
+    "park_code": "LAVO",
+    "facility_name": "Butte Lake",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "234162",
+    "park_code": "LAVO",
+    "facility_name": "Butte Lake Group",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "233358",
+    "park_code": "LAVO",
+    "facility_name": "Summit Lake Stock Corral",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "234040",
+    "park_code": "LAVO",
+    "facility_name": "Summit Lake South",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "234042",
+    "park_code": "LAVO",
+    "facility_name": "Lost Creek Group",
+    "lat": 40.49,
+    "lon": -121.51
+  },
+  {
+    "facility_id": "232468",
+    "park_code": "MACA",
+    "facility_name": "Maple Springs",
+    "lat": 37.19,
+    "lon": -86.1
+  },
+  {
+    "facility_id": "10048983",
+    "park_code": "MACA",
+    "facility_name": "Mammoth Cave Backcountry Camping",
+    "lat": 37.19,
+    "lon": -86.1
+  },
+  {
+    "facility_id": "232467",
+    "park_code": "MACA",
+    "facility_name": "Mammoth Cave Campground",
+    "lat": 37.19,
+    "lon": -86.1
+  },
+  {
+    "facility_id": "232442",
+    "park_code": "MACA",
+    "facility_name": "Mammoth Picnic Shelters",
+    "lat": 37.19,
+    "lon": -86.1
+  },
+  {
+    "facility_id": "258992",
+    "park_code": "MACA",
+    "facility_name": "Houchin Ferry Campground",
+    "lat": 37.19,
+    "lon": -86.1
+  },
+  {
+    "facility_id": "259031",
+    "park_code": "MORA",
+    "facility_name": "White River Campground",
+    "lat": 46.85,
+    "lon": -121.74
+  },
+  {
+    "facility_id": "232509",
+    "park_code": "MORA",
+    "facility_name": "Ohanapecosh Group Campground",
+    "lat": 46.85,
+    "lon": -121.74
+  },
+  {
+    "facility_id": "232465",
+    "park_code": "MORA",
+    "facility_name": "Ohanapecosh Campground",
+    "lat": 46.85,
+    "lon": -121.74
+  },
+  {
+    "facility_id": "232466",
+    "park_code": "MORA",
+    "facility_name": "Cougar Rock Campground",
+    "lat": 46.85,
+    "lon": -121.74
+  },
+  {
+    "facility_id": "232510",
+    "park_code": "MORA",
+    "facility_name": "Cougar Rock Group Campground",
+    "lat": 46.85,
+    "lon": -121.74
+  },
+  {
+    "facility_id": "251783",
+    "park_code": "NERI",
+    "facility_name": "Grandview Playground Shelter",
+    "lat": 37.94,
+    "lon": -81.07
+  },
+  {
+    "facility_id": "251785",
+    "park_code": "NERI",
+    "facility_name": "Grandview Shelter 4",
+    "lat": 37.94,
+    "lon": -81.07
+  },
+  {
+    "facility_id": "251787",
+    "park_code": "NERI",
+    "facility_name": "Grandview Shelter 2",
+    "lat": 37.94,
+    "lon": -81.07
+  },
+  {
+    "facility_id": "251784",
+    "park_code": "NERI",
+    "facility_name": "Grandview Shelter 1",
+    "lat": 37.94,
+    "lon": -81.07
+  },
+  {
+    "facility_id": "251786",
+    "park_code": "NERI",
+    "facility_name": "Grandview Shelter 3",
+    "lat": 37.94,
+    "lon": -81.07
+  },
+  {
+    "facility_id": "10101333",
+    "park_code": "NOCA",
+    "facility_name": "Lakeview Campground (Stehekin)",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "234060",
+    "park_code": "NOCA",
+    "facility_name": "Newhalem Creek Campground",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "246855",
+    "park_code": "NOCA",
+    "facility_name": "Colonial Creek North Campground",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "234088",
+    "park_code": "NOCA",
+    "facility_name": "Lower Goodell Group Campground",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "10101324",
+    "park_code": "NOCA",
+    "facility_name": "Harlequin Campground",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "10101344",
+    "park_code": "NOCA",
+    "facility_name": "Purple Point Campground",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "234089",
+    "park_code": "NOCA",
+    "facility_name": "Upper Goodell Group Campground",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "246852",
+    "park_code": "NOCA",
+    "facility_name": "Goodell Creek Campground",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "10004932",
+    "park_code": "NOCA",
+    "facility_name": "Gorge Lake Campground",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "255201",
+    "park_code": "NOCA",
+    "facility_name": "Colonial Creek South Campground",
+    "lat": 48.49,
+    "lon": -121.2
+  },
+  {
+    "facility_id": "247591",
+    "park_code": "OLYM",
+    "facility_name": "Mora Campground",
+    "lat": 47.97,
+    "lon": -123.5
+  },
+  {
+    "facility_id": "251906",
+    "park_code": "OLYM",
+    "facility_name": "Sol Duc Hot Springs Resort Campground",
+    "lat": 47.97,
+    "lon": -123.5
+  },
+  {
+    "facility_id": "247592",
+    "park_code": "OLYM",
+    "facility_name": "Hoh Rainforest Campground",
+    "lat": 47.97,
+    "lon": -123.5
+  },
+  {
+    "facility_id": "232464",
+    "park_code": "OLYM",
+    "facility_name": "Kalaloch",
+    "lat": 47.97,
+    "lon": -123.5
+  },
+  {
+    "facility_id": "259084",
+    "park_code": "OLYM",
+    "facility_name": "Fairholme Campground",
+    "lat": 47.97,
+    "lon": -123.5
+  },
+  {
+    "facility_id": "234015",
+    "park_code": "PINN",
+    "facility_name": "Pinnacles Campground",
+    "lat": 36.49,
+    "lon": -121.16
+  },
+  {
+    "facility_id": "260552",
+    "park_code": "ROMO",
+    "facility_name": "Rocky Mountain National Park Timber Creek Campground",
+    "lat": 40.4,
+    "lon": -105.58
+  },
+  {
+    "facility_id": "233187",
+    "park_code": "ROMO",
+    "facility_name": "Rocky Mountain National Park Aspenglen Campground",
+    "lat": 40.4,
+    "lon": -105.58
+  },
+  {
+    "facility_id": "232462",
+    "park_code": "ROMO",
+    "facility_name": "Rocky Mountain National Park Glacier Basin Campground",
+    "lat": 40.4,
+    "lon": -105.58
+  },
+  {
+    "facility_id": "232463",
+    "park_code": "ROMO",
+    "facility_name": "Rocky Mountain National Park Moraine Park Campground",
+    "lat": 40.4,
+    "lon": -105.58
+  },
+  {
+    "facility_id": "232433",
+    "park_code": "SHEN",
+    "facility_name": "Loft Mountain Campground",
+    "lat": 38.53,
+    "lon": -78.35
+  },
+  {
+    "facility_id": "259237",
+    "park_code": "SHEN",
+    "facility_name": "Lewis Mountain Campground",
+    "lat": 38.53,
+    "lon": -78.35
+  },
+  {
+    "facility_id": "232432",
+    "park_code": "SHEN",
+    "facility_name": "Mathews Arm Campground",
+    "lat": 38.53,
+    "lon": -78.35
+  },
+  {
+    "facility_id": "232459",
+    "park_code": "SHEN",
+    "facility_name": "Big Meadows Campground - Shenandoah (Va)",
+    "lat": 38.53,
+    "lon": -78.35
+  },
+  {
+    "facility_id": "10294670",
+    "park_code": "THRO",
+    "facility_name": "Cottonwood Group Site (Nd)",
+    "lat": 46.97,
+    "lon": -103.45
+  },
+  {
+    "facility_id": "251160",
+    "park_code": "THRO",
+    "facility_name": "Cottonwood Campground (Nd)",
+    "lat": 46.97,
+    "lon": -103.45
+  },
+  {
+    "facility_id": "251161",
+    "park_code": "THRO",
+    "facility_name": "Roundup Group Horse Camp",
+    "lat": 46.97,
+    "lon": -103.45
+  },
+  {
+    "facility_id": "249981",
+    "park_code": "VOYA",
+    "facility_name": "Voyageurs National Park Camping Permits",
+    "lat": 48.49,
+    "lon": -92.84
+  },
+  {
+    "facility_id": "10075403",
+    "park_code": "WRST",
+    "facility_name": "Esker Stream Cabin",
+    "lat": 61.0,
+    "lon": -142.0
+  },
+  {
+    "facility_id": "259308",
+    "park_code": "YELL",
+    "facility_name": "Tower Fall Campground",
+    "lat": 44.6,
+    "lon": -110.5
+  },
+  {
+    "facility_id": "259304",
+    "park_code": "YELL",
+    "facility_name": "Indian Creek Campground (Wy)",
+    "lat": 44.6,
+    "lon": -110.5
+  },
+  {
+    "facility_id": "247571",
+    "park_code": "YELL",
+    "facility_name": "Mammoth Campground (Yellowstone)",
+    "lat": 44.6,
+    "lon": -110.5
+  },
+  {
+    "facility_id": "259310",
+    "park_code": "YELL",
+    "facility_name": "Slough Creek Campground",
+    "lat": 44.6,
+    "lon": -110.5
+  },
+  {
+    "facility_id": "232448",
     "park_code": "YOSE",
-    "facility_name": "Lower Pines",
-    "lat": 37.7399,
-    "lon": -119.5652
+    "facility_name": "Tuolumne Meadows Campground",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "10083831",
+    "park_code": "YOSE",
+    "facility_name": "Porcupine Flat Campground",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "10083840",
+    "park_code": "YOSE",
+    "facility_name": "Yosemite Creek Campground",
+    "lat": 37.87,
+    "lon": -119.55
   },
   {
     "facility_id": "232449",
     "park_code": "YOSE",
-    "facility_name": "North Pines",
-    "lat": 37.744,
-    "lon": -119.5652
+    "facility_name": "North Pines Campground",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "10346420",
+    "park_code": "YOSE",
+    "facility_name": "Tuolumne Horse Campsites",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "10083845",
+    "park_code": "YOSE",
+    "facility_name": "Tamarack Flat Campground",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "232451",
+    "park_code": "YOSE",
+    "facility_name": "Hodgdon Meadow Campground",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "232452",
+    "park_code": "YOSE",
+    "facility_name": "Crane Flat Campground",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "232453",
+    "park_code": "YOSE",
+    "facility_name": "Bridalveil Creek Campground",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "10083567",
+    "park_code": "YOSE",
+    "facility_name": "White Wolf Campground",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "232450",
+    "park_code": "YOSE",
+    "facility_name": "Lower Pines Campground",
+    "lat": 37.87,
+    "lon": -119.55
+  },
+  {
+    "facility_id": "232446",
+    "park_code": "YOSE",
+    "facility_name": "Wawona Campground",
+    "lat": 37.87,
+    "lon": -119.55
   },
   {
     "facility_id": "232447",
     "park_code": "YOSE",
-    "facility_name": "Upper Pines",
-    "lat": 37.7456,
-    "lon": -119.5936
+    "facility_name": "Upper Pines Campground",
+    "lat": 37.87,
+    "lon": -119.55
   },
   {
-    "facility_id": "272267",
+    "facility_id": "272266",
     "park_code": "ZION",
-    "facility_name": "South Campground",
-    "lat": 37.205,
-    "lon": -112.98
+    "facility_name": "South Campground (Ut)",
+    "lat": 37.3,
+    "lon": -113.05
   },
   {
-    "facility_id": "272265",
+    "facility_id": "232445",
     "park_code": "ZION",
     "facility_name": "Watchman Campground",
-    "lat": 37.209,
-    "lon": -112.9801
+    "lat": 37.3,
+    "lon": -113.05
   }
 ]
