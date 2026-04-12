@@ -176,6 +176,29 @@ def park_busyness(
     return park_model.to_dict()
 
 
+# ── /parks/{unit_code}/conditions  (diagnostic / debug) ──────────────────────
+
+@app.get("/parks/{unit_code}/conditions")
+def park_conditions(unit_code: str):
+    """
+    Raw Open-Meteo weather + AQI responses for a park.
+    Use this to diagnose 'Unavailable' cards on the mobile UI.
+    """
+    from conditions import PARK_COORDS, load_aqi, load_weather
+
+    code = _require_national_park(unit_code)
+    coords = PARK_COORDS.get(code)
+    if not coords:
+        return {"error": f"No coordinates for {code}"}
+    lat, lon = coords
+    return {
+        "park": code,
+        "coords": {"lat": lat, "lon": lon},
+        "weather_raw": load_weather(lat, lon),
+        "aqi_raw": load_aqi(lat, lon),
+    }
+
+
 # ── /parks/{unit_code}/overview  (mobile Overview screen) ─────────────────────
 
 @app.get("/parks/{unit_code}/overview")

@@ -12,6 +12,7 @@ None so the endpoint always returns a partial response.
 from __future__ import annotations
 
 import csv
+import logging
 import os
 import sys
 from datetime import date, datetime
@@ -231,10 +232,14 @@ def _summarise_fire(park_lat: float, park_lon: float, fire: dict[str, Any]) -> s
 
 # ── Main assembler ────────────────────────────────────────────────────────────
 
+logger = logging.getLogger(__name__)
+
+
 def _safe(fn, *args, **kwargs):
     try:
         return fn(*args, **kwargs)
-    except Exception:
+    except Exception as exc:
+        logger.warning("_safe: %s(%s) raised %s: %s", fn.__name__, args, type(exc).__name__, exc)
         return None
 
 
@@ -299,18 +304,28 @@ def assemble_overview(
         lat, lon = coords
 
         aqi_raw = _safe(load_aqi, lat, lon)
-        if aqi_raw and "_error" not in aqi_raw:
-            cur = (aqi_raw or {}).get("current") or {}
+        if aqi_raw is None:
+            logger.warning("load_aqi returned None for %s (%.2f, %.2f)", code, lat, lon)
+        elif "_error" in aqi_raw:
+            logger.warning("load_aqi error for %s: %s", code, aqi_raw["_error"])
+        else:
+            cur = aqi_raw.get("current") or {}
             us_aqi = cur.get("us_aqi")
             if us_aqi is not None:
                 aqi_card = {
                     "value": int(round(us_aqi)),
                     "label": aqi_label(us_aqi),
                 }
+            else:
+                logger.warning("load_aqi: no 'us_aqi' in current for %s; keys=%s", code, list(cur.keys()))
 
         wx_raw = _safe(load_weather, lat, lon)
-        if wx_raw and "_error" not in wx_raw:
-            cur = (wx_raw or {}).get("current") or {}
+        if wx_raw is None:
+            logger.warning("load_weather returned None for %s (%.2f, %.2f)", code, lat, lon)
+        elif "_error" in wx_raw:
+            logger.warning("load_weather error for %s: %s", code, wx_raw["_error"])
+        else:
+            cur = wx_raw.get("current") or {}
             temp = cur.get("temperature_2m")
             code_wmo = cur.get("weather_code")
             if temp is not None:
@@ -318,6 +333,8 @@ def assemble_overview(
                     "temp_f": int(round(temp)),
                     "description": describe_weather_code(code_wmo),
                 }
+            else:
+                logger.warning("load_weather: no 'temperature_2m' in current for %s; keys=%s", code, list(cur.keys()))
 
     camping_card = _safe(load_campsite_pct, code)
 
