@@ -41,8 +41,17 @@ def _scan_to_response(scan: dict) -> ScanResponse:
 
 @router.post("/scans", status_code=201, response_model=ScanResponse)
 async def create_scan(body: ScanCreate):
-    """Create a new availability scan."""
+    """Create a new availability scan and send confirmation SMS/email."""
+    from alert_engine.notifier import send_scan_confirmation
+
     scan = await db.create_scan(body.model_dump())
+
+    # Fire-and-forget confirmation — don't block the response
+    try:
+        await send_scan_confirmation(scan)
+    except Exception:
+        pass  # logged inside send_scan_confirmation
+
     return _scan_to_response(scan)
 
 

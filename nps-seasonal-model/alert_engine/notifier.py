@@ -106,6 +106,42 @@ async def _send_email(to: str, subject: str, body: str) -> bool:
     return True
 
 
+async def send_scan_confirmation(scan: dict[str, Any]) -> None:
+    """Send a confirmation SMS/email when a new scan is created."""
+    park = scan.get("park_name", "Unknown")
+    arrival = scan.get("arrival_date", "")
+    nights = scan.get("num_nights", 1)
+    flex = " (±2 days)" if scan.get("flexible_arrival") else ""
+    site_type = scan.get("site_type", "any")
+
+    body = (
+        f"ParkPulse: Active scan started!\n\n"
+        f"Watching: {park}\n"
+        f"Dates: {arrival}{flex} for {nights} night{'s' if nights != 1 else ''}\n"
+        f"Site type: {site_type}\n\n"
+        f"We'll text you the moment a matching campsite opens up.\n"
+        f"Polling every {os.getenv('POLL_INTERVAL_SECONDS', '120')} seconds."
+    )
+
+    if scan.get("notify_sms") and TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
+        try:
+            _send_sms(scan["notify_sms"], body)
+            logger.info("Confirmation SMS sent to %s for scan %d", scan["notify_sms"], scan["id"])
+        except Exception as exc:
+            logger.warning("Confirmation SMS failed: %s: %s", type(exc).__name__, exc)
+
+    if scan.get("notify_email") and TWILIO_SENDGRID_API_KEY:
+        try:
+            await _send_email(
+                scan["notify_email"],
+                f"ParkPulse: Now watching {park}",
+                body,
+            )
+            logger.info("Confirmation email sent to %s for scan %d", scan["notify_email"], scan["id"])
+        except Exception as exc:
+            logger.warning("Confirmation email failed: %s: %s", type(exc).__name__, exc)
+
+
 async def send_alert(scan: dict[str, Any], event: AvailabilityEvent) -> None:
     """Enrich, build message, and dispatch via SMS and/or email."""
     # Enrich with conditions (best-effort, never blocks)
