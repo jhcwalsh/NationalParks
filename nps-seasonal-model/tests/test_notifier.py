@@ -136,9 +136,9 @@ class TestSendAlert:
 
         with (
             patch("alert_engine.notifier.get_conditions", new_callable=AsyncMock, return_value={}),
-            patch("alert_engine.notifier._send_email", return_value=True) as mock_email,
+            patch("alert_engine.notifier._send_email", new_callable=AsyncMock, return_value=True) as mock_email,
             patch("alert_engine.notifier.db") as mock_db,
-            patch("alert_engine.notifier.SENDGRID_API_KEY", "test_key"),
+            patch("alert_engine.notifier.TWILIO_SENDGRID_API_KEY", "test_key"),
         ):
             mock_db.insert_alert_log = AsyncMock()
             await send_alert(scan, event)
@@ -154,11 +154,11 @@ class TestSendAlert:
         with (
             patch("alert_engine.notifier.get_conditions", new_callable=AsyncMock, return_value={}),
             patch("alert_engine.notifier._send_sms", return_value="SM123") as mock_sms,
-            patch("alert_engine.notifier._send_email", return_value=True) as mock_email,
+            patch("alert_engine.notifier._send_email", new_callable=AsyncMock, return_value=True) as mock_email,
             patch("alert_engine.notifier.db") as mock_db,
             patch("alert_engine.notifier.TWILIO_ACCOUNT_SID", "test_sid"),
             patch("alert_engine.notifier.TWILIO_AUTH_TOKEN", "test_token"),
-            patch("alert_engine.notifier.SENDGRID_API_KEY", "test_key"),
+            patch("alert_engine.notifier.TWILIO_SENDGRID_API_KEY", "test_key"),
         ):
             mock_db.insert_alert_log = AsyncMock()
             await send_alert(scan, event)

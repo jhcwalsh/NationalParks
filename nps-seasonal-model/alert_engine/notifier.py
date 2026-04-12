@@ -1,14 +1,16 @@
 """SMS + email alert dispatch.
 
-Sends campsite availability notifications via Twilio (SMS) and
-SendGrid (email). Enriches the message with conditions data
-(crowd score, AQI) when available.
+Sends campsite availability notifications via Twilio — SMS through
+the Twilio REST API and email through Twilio SendGrid's SMTP relay.
+Enriches the message with conditions data (crowd score, AQI) when
+available.
 """
 
 from __future__ import annotations
 
 import logging
 import os
+from email.message import EmailMessage
 from typing import Any
 
 from alert_engine import db
@@ -17,14 +19,13 @@ from alert_engine.models import AvailabilityEvent
 
 logger = logging.getLogger(__name__)
 
-# ── Env config ───────────────────────────────────────────────────────────────
+# ── Env config (all Twilio) ──────────────────────────────────────────────────
 
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
 TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER", "")
-
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "")
-SENDGRID_FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL", "alerts@parkpulse.app")
+TWILIO_SENDGRID_API_KEY = os.getenv("TWILIO_SENDGRID_API_KEY", "")
+TWILIO_FROM_EMAIL = os.getenv("TWILIO_FROM_EMAIL", "alerts@parkpulse.app")
 
 
 def _build_message(
@@ -84,20 +85,25 @@ def _send_sms(to: str, body: str) -> str:
     return message.sid
 
 
-def _send_email(to: str, subject: str, body: str) -> bool:
-    """Send a plain-text email via SendGrid. Returns True on success."""
-    import sendgrid
-    from sendgrid.helpers.mail import Content, Email, Mail, To
+async def _send_email(to: str, subject: str, body: str) -> bool:
+    """Send a plain-text email via Twilio SendGrid SMTP relay."""
+    import aiosmtplib
 
-    sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
-    mail = Mail(
-        from_email=Email(SENDGRID_FROM_EMAIL),
-        to_emails=To(to),
-        subject=subject,
-        plain_text_content=Content("text/plain", body),
+    msg = EmailMessage()
+    msg["From"] = TWILIO_FROM_EMAIL
+    msg["To"] = to
+    msg["Subject"] = subject
+    msg.set_content(body)
+
+    await aiosmtplib.send(
+        msg,
+        hostname="smtp.sendgrid.net",
+        port=587,
+        username="apikey",
+        password=TWILIO_SENDGRID_API_KEY,
+        start_tls=True,
     )
-    response = sg.client.mail.send.post(request_body=mail.get())
-    return 200 <= response.status_code < 300
+    return True
 
 
 async def send_alert(scan: dict[str, Any], event: AvailabilityEvent) -> None:
@@ -131,12 +137,12 @@ async def send_alert(scan: dict[str, Any], event: AvailabilityEvent) -> None:
         await db.insert_alert_log(scan["id"], event_id, "sms", dest, body, status)
 
     # ── Email ─────────────────────────────────────────────────────────────
-    if scan.get("notify_email") and SENDGRID_API_KEY:
+    if scan.get("notify_email") and TWILIO_SENDGRID_API_KEY:
         dest = scan["notify_email"]
         subject = f"Campsite available at {park_name} — {arrival}"
         status = "sent"
         try:
-            _send_email(dest, subject, body)
+            await _send_email(dest, subject, body)
             logger.info("Email sent to %s for scan %d", dest, scan["id"])
         except Exception as exc:
             status = "failed"

@@ -1,6 +1,6 @@
 # ParkPulse — Campsite Alert Engine
 
-Monitors Recreation.gov for campsite cancellations and notifies users via SMS (Twilio) and email (SendGrid) when a matching site opens.
+Monitors Recreation.gov for campsite cancellations and notifies users via Twilio (SMS + email through SendGrid SMTP relay) when a matching site opens.
 
 ## Architecture
 
@@ -12,7 +12,7 @@ alert_engine/
 ├── poller.py         # Recreation.gov availability poller + APScheduler
 ├── matcher.py        # Match availability events → active user scans
 ├── enricher.py       # Best-effort AQI + crowd score for alert messages
-├── notifier.py       # Twilio SMS + SendGrid email dispatch
+├── notifier.py       # Twilio SMS + email (SendGrid SMTP relay)
 └── router.py         # FastAPI routes mounted at /api/alerts
 ```
 
@@ -39,9 +39,9 @@ Required for core functionality:
 - `RECREATION_GOV_API_KEY` — Recreation.gov API key
 - `DATABASE_URL` — SQLite path (default: `parkpulse.db`)
 
-Required for notifications:
-- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` — SMS via Twilio
-- `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL` — Email via SendGrid
+Required for notifications (all Twilio):
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` — SMS
+- `TWILIO_SENDGRID_API_KEY`, `TWILIO_FROM_EMAIL` — Email via SendGrid SMTP relay
 
 Optional:
 - `AIRNOW_API_KEY` — AQI enrichment in alert messages
