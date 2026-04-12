@@ -672,28 +672,24 @@ function renderAlertsDetail(data) {
 
 // ── Cancellations tab ───────────────────────────────────────────────────
 const CX_USER_ID = "local-user";  // simple client-side user ID
+let cxFacilities = [];  // full list from API
 let cxFacilitiesLoaded = false;
 let cxFormWired = false;
 
 async function loadCancellations() {
-  // Load facilities into dropdown (once)
+  // Load facilities from API (once)
   if (!cxFacilitiesLoaded) {
     try {
       const r = await fetch("/api/alerts/facilities");
       if (r.ok) {
-        const facilities = await r.json();
-        const select = el("cx-facility");
-        for (const f of facilities) {
-          const opt = document.createElement("option");
-          opt.value = f.facility_id;
-          opt.textContent = `${f.facility_name} (${f.park_code})`;
-          opt.dataset.parkName = `${f.facility_name}`;
-          select.appendChild(opt);
-        }
+        cxFacilities = await r.json();
         cxFacilitiesLoaded = true;
       }
     } catch (e) { /* ignore */ }
   }
+
+  // Filter dropdown to current park
+  populateCxFacilities();
 
   // Set default arrival date to tomorrow
   const arrivalInput = el("cx-arrival");
@@ -714,6 +710,30 @@ async function loadCancellations() {
 
   // Load status
   await loadCxStatus();
+}
+
+function populateCxFacilities() {
+  const select = el("cx-facility");
+  const code = state.currentCode;
+
+  // Keep only the placeholder option
+  select.length = 1;
+
+  // Filter to current park, fall back to all if none match
+  let filtered = cxFacilities.filter((f) => f.park_code === code);
+  if (filtered.length === 0) filtered = cxFacilities;
+
+  filtered.sort((a, b) => a.facility_name.localeCompare(b.facility_name));
+
+  for (const f of filtered) {
+    const opt = document.createElement("option");
+    opt.value = f.facility_id;
+    opt.textContent = filtered === cxFacilities
+      ? `${f.facility_name} (${f.park_code})`
+      : f.facility_name;
+    opt.dataset.parkName = f.facility_name;
+    select.appendChild(opt);
+  }
 }
 
 async function handleCxSubmit(ev) {
