@@ -116,8 +116,9 @@ html, body {
   position: absolute;
   left: var(--pad);
   right: var(--pad);
-  max-height: 260px;
+  max-height: 50vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   z-index: 10;
   box-shadow: 0 6px 18px rgba(13, 30, 22, 0.12);
 }

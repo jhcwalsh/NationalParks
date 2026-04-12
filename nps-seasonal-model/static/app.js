@@ -216,12 +216,12 @@ function wireSearch() {
   const list   = el("park-suggest");
 
   const filter = (q) => {
-    if (!q) return state.parks.slice(0, 8);
+    if (!q) return state.parks;
     const ql = q.toLowerCase();
-    return state.parks
-      .filter((p) => p.name.toLowerCase().includes(ql) ||
-                     p.unit_code.toLowerCase().startsWith(ql))
-      .slice(0, 8);
+    return state.parks.filter(
+      (p) => p.name.toLowerCase().includes(ql) ||
+             p.unit_code.toLowerCase().startsWith(ql),
+    );
   };
 
   const renderList = (items) => {
