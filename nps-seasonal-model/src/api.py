@@ -200,6 +200,15 @@ def park_conditions(unit_code: str):
     }
 
 
+# ── /parks/{unit_code}/alerts ──────────────────────────────────────────────────
+
+@app.get("/parks/{unit_code}/alerts")
+def park_alerts(unit_code: str):
+    """Full alert details (NPS alerts + nearby wildfires) for the Alerts tab."""
+    code = _require_national_park(unit_code)
+    return mobile.load_park_alerts_detail(code)
+
+
 # ── /parks/{unit_code}/camping ─────────────────────────────────────────────────
 
 @app.get("/parks/{unit_code}/camping")

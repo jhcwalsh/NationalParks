@@ -15,6 +15,7 @@ import csv
 import logging
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -384,45 +385,50 @@ def assemble_overview(
             for ms in full_model.monthly_scores
         ]
 
-    # ── Cards: AQI / weather / camping ──────────────────────────────────────
-    aqi_card: dict[str, Any] | None = None
-    weather_card: dict[str, Any] | None = None
+    # ── Parallel fetch: AQI, weather, fires, NPS alerts ──────────────────────
+    # These 4 network calls were sequential (~15-30s worst case). Running
+    # them in parallel brings wall-clock time down to the slowest single
+    # call (~5-10s), a 3-4x speedup on cold cache.
+    aqi_raw = None
+    wx_raw = None
+    fires_raw: list = []
+    nps_alerts_raw: list = []
+
     if coords is not None:
         lat, lon = coords
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            fut_aqi = pool.submit(_safe, load_aqi, lat, lon)
+            fut_wx = pool.submit(_safe, load_weather, lat, lon)
+            fut_fires = pool.submit(_safe, load_active_fires, lat, lon)
+            fut_nps = pool.submit(_safe, load_nps_alerts, code, nps_api_key)
 
-        aqi_raw = _safe(load_aqi, lat, lon)
-        if aqi_raw is None:
-            logger.warning("load_aqi returned None for %s (%.2f, %.2f)", code, lat, lon)
-        elif "_error" in aqi_raw:
-            logger.warning("load_aqi error for %s: %s", code, aqi_raw["_error"])
-        else:
-            cur = aqi_raw.get("current") or {}
-            us_aqi = cur.get("us_aqi")
-            if us_aqi is not None:
-                aqi_card = {
-                    "value": int(round(us_aqi)),
-                    "label": aqi_label(us_aqi),
-                }
-            else:
-                logger.warning("load_aqi: no 'us_aqi' in current for %s; keys=%s", code, list(cur.keys()))
+            aqi_raw = fut_aqi.result()
+            wx_raw = fut_wx.result()
+            fires_raw = fut_fires.result() or []
+            nps_alerts_raw = fut_nps.result() or []
+    else:
+        nps_alerts_raw = load_nps_alerts(code, nps_api_key)
 
-        wx_raw = _safe(load_weather, lat, lon)
-        if wx_raw is None:
-            logger.warning("load_weather returned None for %s (%.2f, %.2f)", code, lat, lon)
-        elif "_error" in wx_raw:
-            logger.warning("load_weather error for %s: %s", code, wx_raw["_error"])
-        else:
-            cur = wx_raw.get("current") or {}
-            temp = cur.get("temperature_2m")
-            if temp is not None:
-                # NWS returns shortForecast ("Sunny"); Open-Meteo uses weather_code
-                description = cur.get("short_forecast") or describe_weather_code(cur.get("weather_code"))
-                weather_card = {
-                    "temp_f": int(round(temp)),
-                    "description": description,
-                }
-            else:
-                logger.warning("load_weather: no 'temperature_2m' in current for %s; keys=%s", code, list(cur.keys()))
+    # ── Parse AQI ──────────────────────────────────────────────────────────
+    aqi_card: dict[str, Any] | None = None
+    if aqi_raw and "_error" not in aqi_raw:
+        cur = aqi_raw.get("current") or {}
+        us_aqi = cur.get("us_aqi")
+        if us_aqi is not None:
+            aqi_card = {"value": int(round(us_aqi)), "label": aqi_label(us_aqi)}
+    elif aqi_raw and "_error" in aqi_raw:
+        logger.warning("load_aqi error for %s: %s", code, aqi_raw["_error"])
+
+    # ── Parse weather ──────────────────────────────────────────────────────
+    weather_card: dict[str, Any] | None = None
+    if wx_raw and "_error" not in wx_raw:
+        cur = wx_raw.get("current") or {}
+        temp = cur.get("temperature_2m")
+        if temp is not None:
+            description = cur.get("short_forecast") or describe_weather_code(cur.get("weather_code"))
+            weather_card = {"temp_f": int(round(temp)), "description": description}
+    elif wx_raw and "_error" in wx_raw:
+        logger.warning("load_weather error for %s: %s", code, wx_raw["_error"])
 
     camping_card = _safe(load_campsite_pct, code)
 
@@ -432,15 +438,13 @@ def assemble_overview(
         "camping": camping_card,
     }
 
-    # ── Alerts: fires (NIFC) + NPS alerts filtered to weather/smoke ──────────
+    # ── Alerts: fires (NIFC) + NPS alerts ──────────────────────────────────
     alerts: list[dict[str, str]] = []
 
     if coords is not None:
         lat, lon = coords
-        fires = _safe(load_active_fires, lat, lon) or []
-        # Only surface fires within ~60 miles, sorted by distance
         enriched: list[tuple[float, dict[str, Any]]] = []
-        for f in fires:
+        for f in fires_raw:
             flat, flon = f.get("_lat"), f.get("_lon")
             if flat is None or flon is None:
                 continue
@@ -456,18 +460,16 @@ def assemble_overview(
             if text:
                 alerts.append({"tone": "fire", "text": text})
 
-    # NPS alerts — surface the most relevant 2 that match smoke/weather/closure
-    nps_alerts = load_nps_alerts(code, nps_api_key)
+    # NPS alerts — surface the most relevant that match smoke/weather/closure
     remaining = 3 - len(alerts)
-    if remaining > 0 and nps_alerts:
+    if remaining > 0 and nps_alerts_raw:
         picked = 0
-        for a in nps_alerts:
+        for a in nps_alerts_raw:
             title = (a.get("title") or "").strip()
             if not title:
                 continue
             cat = a.get("category") or ""
             tone = _classify_alert_tone(cat, f"{title} {a.get('description', '')}")
-            # Skip plain info alerts — they clutter the mobile UI
             if tone == "info":
                 continue
             alerts.append({"tone": tone, "text": title})
@@ -491,6 +493,100 @@ def assemble_overview(
         "alerts": alerts,
         "monthly": monthly,
         "fetched_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+    }
+
+
+def load_park_alerts_detail(
+    unit_code: str,
+    nps_api_key: str | None = None,
+) -> dict[str, Any]:
+    """
+    Full alerts payload for the Alerts tab — includes all NPS alerts (not
+    just the filtered top 3 on Overview) plus nearby wildfires, each with
+    full title, description, category, and URL.
+    """
+    code = unit_code.upper()
+    nps_api_key = nps_api_key or os.getenv("NPS_API_KEY", "")
+    coords = PARK_COORDS.get(code)
+
+    # Parallel fetch: NPS alerts + fires
+    nps_alerts_raw: list = []
+    fires_raw: list = []
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        fut_nps = pool.submit(load_nps_alerts, code, nps_api_key)
+        fut_fires = (
+            pool.submit(_safe, load_active_fires, coords[0], coords[1])
+            if coords else None
+        )
+        nps_alerts_raw = fut_nps.result() or []
+        if fut_fires:
+            fires_raw = fut_fires.result() or []
+
+    # Format NPS alerts with full detail
+    nps_formatted: list[dict[str, Any]] = []
+    for a in nps_alerts_raw:
+        title = (a.get("title") or "").strip()
+        if not title:
+            continue
+        cat = a.get("category") or ""
+        desc = (a.get("description") or "").strip()
+        url = (a.get("url") or "").strip()
+        tone = _classify_alert_tone(cat, f"{title} {desc}")
+        nps_formatted.append({
+            "tone": tone,
+            "category": cat,
+            "title": title,
+            "description": desc,
+            "url": url,
+        })
+
+    # Format fires
+    fire_formatted: list[dict[str, Any]] = []
+    if coords:
+        lat, lon = coords
+        enriched: list[tuple[float, dict[str, Any]]] = []
+        for f in fires_raw:
+            flat, flon = f.get("_lat"), f.get("_lon")
+            if flat is None or flon is None:
+                continue
+            try:
+                d = haversine_miles(lat, lon, float(flat), float(flon))
+            except (TypeError, ValueError):
+                continue
+            if d <= 80:
+                enriched.append((d, f))
+        enriched.sort(key=lambda pair: pair[0])
+        for dist, f in enriched[:5]:
+            name = (f.get("IncidentName") or "").strip()
+            if not name:
+                continue
+            acres = f.get("GISAcres")
+            contained = f.get("PercentContained")
+            direction = bearing_to_cardinal(lat, lon, float(f["_lat"]), float(f["_lon"]))
+            entry: dict[str, Any] = {
+                "name": name,
+                "distance_mi": round(dist),
+                "direction": direction,
+                "summary": _summarise_fire(lat, lon, f) or "",
+            }
+            if acres is not None:
+                try:
+                    entry["acres"] = int(float(acres))
+                except (TypeError, ValueError):
+                    pass
+            if contained is not None and contained != "":
+                try:
+                    entry["pct_contained"] = int(float(contained))
+                except (TypeError, ValueError):
+                    pass
+            fire_formatted.append(entry)
+
+    return {
+        "park_code": code,
+        "nps_alerts": nps_formatted,
+        "fires": fire_formatted,
+        "total": len(nps_formatted) + len(fire_formatted),
     }
 
 

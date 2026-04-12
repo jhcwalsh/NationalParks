@@ -297,6 +297,7 @@ function resetToOverviewTab() {
   );
   el("webcams-tab").hidden = true;
   el("camping-tab").hidden = true;
+  el("alerts-tab").hidden = true;
   el("tab-placeholder").hidden = true;
 }
 
@@ -317,10 +318,13 @@ function wireTabs() {
     ".park-header, .cards, .alerts, .monthly",
   );
 
+  const alertsTab = el("alerts-tab");
+
   const hideAll = () => {
     overviewSections.forEach((s) => (s.style.display = "none"));
     webcamsTab.hidden = true;
     campingTab.hidden = true;
+    alertsTab.hidden = true;
     placeholder.hidden = true;
   };
 
@@ -338,6 +342,9 @@ function wireTabs() {
       } else if (tab === "camping") {
         campingTab.hidden = false;
         loadCamping();
+      } else if (tab === "alerts") {
+        alertsTab.hidden = false;
+        loadAlertsDetail();
       } else {
         placeholder.hidden = false;
       }
@@ -536,5 +543,122 @@ function renderCamping(data) {
     note.className = "camping-window";
     note.textContent = `Availability data for ${data.window.start} to ${data.window.end}`;
     wrap.appendChild(note);
+  }
+}
+
+// ── Alerts detail tab ────────────────────────────────────────────────────
+let alertsDetailCache = {};
+
+async function loadAlertsDetail() {
+  const code = state.currentCode;
+  if (!code) return;
+
+  const wrap = el("alerts-detail-content");
+
+  if (alertsDetailCache[code]) {
+    renderAlertsDetail(alertsDetailCache[code]);
+    return;
+  }
+
+  wrap.innerHTML = '<p class="alerts-empty">Loading alerts…</p>';
+
+  try {
+    const r = await fetch(`/parks/${code}/alerts`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    alertsDetailCache[code] = data;
+    renderAlertsDetail(data);
+  } catch (err) {
+    wrap.innerHTML = `<p class="alerts-empty">Unable to load alerts: ${err.message}</p>`;
+  }
+}
+
+function renderAlertsDetail(data) {
+  const wrap = el("alerts-detail-content");
+  wrap.innerHTML = "";
+
+  const fires = data.fires || [];
+  const npsAlerts = data.nps_alerts || [];
+
+  if (fires.length === 0 && npsAlerts.length === 0) {
+    wrap.innerHTML = '<p class="alerts-empty">No active alerts or nearby fires for this park.</p>';
+    return;
+  }
+
+  // Fires section
+  if (fires.length > 0) {
+    const label = document.createElement("p");
+    label.className = "alerts-section-label";
+    label.textContent = `Nearby wildfires (${fires.length})`;
+    wrap.appendChild(label);
+
+    for (const f of fires) {
+      const card = document.createElement("div");
+      card.className = "fire-detail";
+
+      const name = document.createElement("p");
+      name.className = "fd-name";
+      name.textContent = `${f.name} Fire`;
+      card.appendChild(name);
+
+      const parts = [`${f.distance_mi} mi ${f.direction}`];
+      if (f.acres) parts.push(`${f.acres.toLocaleString()} acres`);
+      if (f.pct_contained !== undefined) parts.push(`${f.pct_contained}% contained`);
+
+      const meta = document.createElement("p");
+      meta.className = "fd-meta";
+      meta.textContent = parts.join(" · ");
+      card.appendChild(meta);
+
+      wrap.appendChild(card);
+    }
+  }
+
+  // NPS alerts section
+  if (npsAlerts.length > 0) {
+    const label = document.createElement("p");
+    label.className = "alerts-section-label";
+    label.textContent = `Park alerts (${npsAlerts.length})`;
+    wrap.appendChild(label);
+
+    for (const a of npsAlerts) {
+      const card = document.createElement("div");
+      card.className = `alert-detail ${a.tone || "info"}`;
+
+      if (a.category) {
+        const cat = document.createElement("p");
+        cat.className = "ad-category";
+        cat.textContent = a.category;
+        card.appendChild(cat);
+      }
+
+      const title = document.createElement("p");
+      title.className = "ad-title";
+      title.textContent = a.title;
+      card.appendChild(title);
+
+      if (a.description) {
+        const desc = document.createElement("p");
+        desc.className = "ad-desc";
+        // Truncate long descriptions for mobile readability
+        const text = a.description.length > 300
+          ? a.description.slice(0, 300) + "…"
+          : a.description;
+        desc.textContent = text;
+        card.appendChild(desc);
+      }
+
+      if (a.url) {
+        const link = document.createElement("a");
+        link.className = "ad-link";
+        link.href = a.url;
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.textContent = "More info on NPS.gov →";
+        card.appendChild(link);
+      }
+
+      wrap.appendChild(card);
+    }
   }
 }

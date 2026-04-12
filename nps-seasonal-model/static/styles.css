@@ -318,6 +318,85 @@ html, body {
   font-weight: 600;
 }
 
+/* ── Alerts tab (detail) ─────────────────────────────── */
+.alerts-tab {
+  padding: 18px var(--pad) 0;
+}
+.alert-detail {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 10px;
+  border-left: 4px solid var(--ink-subtle);
+}
+.alert-detail.fire    { border-left-color: #d0563a; background: #fef0ec; }
+.alert-detail.smoke   { border-left-color: #b87514; background: #fdf5e6; }
+.alert-detail.closure { border-left-color: #c0392b; background: #fdecea; }
+.alert-detail.warning { border-left-color: #e67e22; background: #fdf5e6; }
+.alert-detail.info    { border-left-color: #1a6fa8; background: #eef5fc; }
+
+.alert-detail .ad-category {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px 0;
+  color: var(--ink-muted);
+}
+.alert-detail .ad-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  color: var(--ink);
+}
+.alert-detail .ad-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+  margin: 0 0 8px 0;
+}
+.alert-detail .ad-link {
+  font-size: 12px;
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.fire-detail {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 10px;
+  border-left: 4px solid #d0563a;
+}
+.fire-detail .fd-name {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--peak);
+}
+.fire-detail .fd-meta {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin: 0;
+}
+.alerts-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-subtle);
+  margin: 16px 0 8px 2px;
+}
+.alerts-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+
 /* ── Camping tab ─────────────────────────────────────── */
 .camping-tab {
   padding: 18px var(--pad) 0;
