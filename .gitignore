@@ -23,6 +23,9 @@ build/
 venv/
 env/
 
+# Alert engine runtime DB
+parkpulse.db
+
 # Secrets — never commit real keys
 .env
 
