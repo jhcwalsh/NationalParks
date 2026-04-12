@@ -111,15 +111,17 @@ async def scan_history(scan_id: int):
 @router.get("/status")
 async def alert_status():
     """Poller health check: last poll time, active scans, alerts today."""
+    import logging
     try:
         status = await db.get_status()
-    except Exception:
-        # Must never error, even if DB is not initialised yet
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Status query failed: %s: %s", type(exc).__name__, exc)
         status = {
             "active_scans": 0,
             "facilities_monitored": 0,
             "alerts_sent_today": 0,
             "last_poll_event": None,
+            "_error": f"{type(exc).__name__}: {exc}",
         }
     return status
 

@@ -9,11 +9,15 @@ from __future__ import annotations
 import json
 import os
 from datetime import date, datetime
+from pathlib import Path
 from typing import Any
 
 import aiosqlite
 
-DATABASE_URL = os.getenv("DATABASE_URL", "parkpulse.db")
+# Resolve DB path relative to the project root (nps-seasonal-model/)
+# so it's consistent regardless of working directory.
+_PROJECT_ROOT = Path(__file__).parent.parent
+_DEFAULT_DB = str(_PROJECT_ROOT / "parkpulse.db")
 
 # ── Priority facilities (seed data) ─────────────────────────────────────────
 
@@ -30,7 +34,10 @@ PRIORITY_FACILITIES: list[dict[str, Any]] = [
 
 
 def _db_path() -> str:
-    return os.getenv("DATABASE_URL", "parkpulse.db")
+    p = os.getenv("DATABASE_URL", "")
+    if p and os.path.isabs(p):
+        return p
+    return _DEFAULT_DB
 
 
 async def get_connection() -> aiosqlite.Connection:
