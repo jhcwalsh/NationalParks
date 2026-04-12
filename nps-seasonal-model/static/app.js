@@ -296,6 +296,7 @@ function resetToOverviewTab() {
     (s) => (s.style.display = ""),
   );
   el("webcams-tab").hidden = true;
+  el("camping-tab").hidden = true;
   el("tab-placeholder").hidden = true;
 }
 
@@ -311,27 +312,33 @@ function wireTabs() {
   const tabs = document.querySelectorAll(".tab");
   const placeholder = el("tab-placeholder");
   const webcamsTab = el("webcams-tab");
+  const campingTab = el("camping-tab");
   const overviewSections = document.querySelectorAll(
     ".park-header, .cards, .alerts, .monthly",
   );
+
+  const hideAll = () => {
+    overviewSections.forEach((s) => (s.style.display = "none"));
+    webcamsTab.hidden = true;
+    campingTab.hidden = true;
+    placeholder.hidden = true;
+  };
 
   tabs.forEach((btn) => {
     btn.addEventListener("click", () => {
       const tab = btn.dataset.tab;
       tabs.forEach((b) => b.classList.toggle("is-active", b === btn));
+      hideAll();
 
       if (tab === "overview") {
         overviewSections.forEach((s) => (s.style.display = ""));
-        webcamsTab.hidden = true;
-        placeholder.hidden = true;
       } else if (tab === "webcams") {
-        overviewSections.forEach((s) => (s.style.display = "none"));
         webcamsTab.hidden = false;
-        placeholder.hidden = true;
         loadWebcams();
+      } else if (tab === "camping") {
+        campingTab.hidden = false;
+        loadCamping();
       } else {
-        overviewSections.forEach((s) => (s.style.display = "none"));
-        webcamsTab.hidden = true;
         placeholder.hidden = false;
       }
     });
@@ -428,4 +435,106 @@ function renderWebcams(data) {
   }
 
   note.textContent = data.note || "";
+}
+
+// ── Camping ──────────────────────────────────────────────────────────────
+let campingCache = {};
+
+async function loadCamping() {
+  const code = state.currentCode;
+  if (!code) return;
+
+  const wrap = el("camping-content");
+
+  if (campingCache[code]) {
+    renderCamping(campingCache[code]);
+    return;
+  }
+
+  wrap.innerHTML = '<p class="camping-empty">Loading campsite data…</p>';
+
+  try {
+    const r = await fetch(`/parks/${code}/camping`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    campingCache[code] = data;
+    renderCamping(data);
+  } catch (err) {
+    wrap.innerHTML = `<p class="camping-empty">Unable to load camping data: ${err.message}</p>`;
+  }
+}
+
+function renderCamping(data) {
+  const wrap = el("camping-content");
+  wrap.innerHTML = "";
+
+  if (!data.has_campgrounds || !data.stats) {
+    wrap.innerHTML = `
+      <p class="camping-empty">No reservable campgrounds at ${data.park_name || "this park"}.</p>
+      <a class="camping-recgov" href="${data.rec_gov_url || "#"}" target="_blank" rel="noopener">
+        Search Recreation.gov →
+      </a>`;
+    return;
+  }
+
+  const s = data.stats;
+
+  // Stat tiles
+  const statsGrid = document.createElement("div");
+  statsGrid.className = "camping-stats";
+
+  const tiles = [
+    { value: s.n_campgrounds, label: "Campgrounds" },
+    { value: s.n_reservable_sites.toLocaleString(), label: "Reservable sites" },
+    { value: s.n_fcfs_sites.toLocaleString(), label: "First-come, first-served" },
+    { value: `${s.pct_available}%`, label: s.availability_label },
+  ];
+
+  for (const t of tiles) {
+    const tile = document.createElement("div");
+    tile.className = "camping-stat";
+    tile.innerHTML = `<p class="cs-value">${t.value}</p><p class="cs-label">${t.label}</p>`;
+    statsGrid.appendChild(tile);
+  }
+  wrap.appendChild(statsGrid);
+
+  // Availability detail card
+  const avail = document.createElement("div");
+  avail.className = "camping-avail";
+
+  const barPct = Math.max(2, Math.min(100, s.pct_available));
+  const barClass = s.pct_available >= 25 ? "good" : s.pct_available >= 10 ? "fair" : "";
+
+  avail.innerHTML = `
+    <div class="ca-row">
+      <span class="ca-label">Overall availability</span>
+      <span class="ca-value">${s.pct_available}%</span>
+    </div>
+    <div class="camping-avail-bar"><div class="fill ${barClass}" style="width:${barPct}%"></div></div>
+    <div class="ca-row">
+      <span class="ca-label">Weekday availability</span>
+      <span class="ca-value">${s.weekday_pct}%</span>
+    </div>
+    <div class="ca-row">
+      <span class="ca-label">Weekend availability</span>
+      <span class="ca-value">${s.weekend_pct}%</span>
+    </div>`;
+  wrap.appendChild(avail);
+
+  // Recreation.gov button
+  const recLink = document.createElement("a");
+  recLink.className = "camping-recgov";
+  recLink.href = data.rec_gov_url;
+  recLink.target = "_blank";
+  recLink.rel = "noopener";
+  recLink.textContent = "Reserve on Recreation.gov →";
+  wrap.appendChild(recLink);
+
+  // Data window note
+  if (data.window) {
+    const note = document.createElement("p");
+    note.className = "camping-window";
+    note.textContent = `Availability data for ${data.window.start} to ${data.window.end}`;
+    wrap.appendChild(note);
+  }
 }

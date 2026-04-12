@@ -163,6 +163,93 @@ def load_campsite_pct(unit_code: str) -> dict[str, Any] | None:
     return None
 
 
+def load_campsite_detail(unit_code: str) -> dict[str, Any] | None:
+    """
+    Full camping stats for the Camping tab. Reads campsite_preview.csv
+    and returns campground count, reservable sites, FCFS sites,
+    availability %, and a recreation.gov search link.
+    """
+    code = unit_code.upper()
+    if code not in NATIONAL_PARKS:
+        return None
+    park_name = NATIONAL_PARKS[code]
+
+    if not CAMPSITE_PREVIEW_CSV.exists():
+        return {
+            "has_campgrounds": False,
+            "park_name": park_name,
+            "rec_gov_url": _rec_gov_url(park_name),
+            "stats": None,
+            "window": None,
+        }
+
+    try:
+        with CAMPSITE_PREVIEW_CSV.open(newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            for row in reader:
+                if row.get("unit_code", "").upper() != code:
+                    continue
+                has_cg = str(row.get("has_campgrounds", "")).strip().lower() == "true"
+
+                if not has_cg:
+                    return {
+                        "has_campgrounds": False,
+                        "park_name": park_name,
+                        "rec_gov_url": _rec_gov_url(park_name),
+                        "stats": None,
+                        "window": None,
+                    }
+
+                def _int(key: str) -> int:
+                    try:
+                        return int(float(row.get(key) or 0))
+                    except (TypeError, ValueError):
+                        return 0
+
+                def _float(key: str) -> float:
+                    try:
+                        return round(float(row.get(key) or 0), 1)
+                    except (TypeError, ValueError):
+                        return 0.0
+
+                pct = _float("pct_available")
+                return {
+                    "has_campgrounds": True,
+                    "park_name": park_name,
+                    "rec_gov_url": _rec_gov_url(park_name),
+                    "stats": {
+                        "n_campgrounds": _int("n_facilities"),
+                        "n_reservable_sites": _int("n_reservable_sites"),
+                        "n_fcfs_sites": _int("n_fcfs_sites"),
+                        "pct_available": pct,
+                        "availability_label": _camping_label(pct),
+                        "weekend_pct": _float("weekend_pct"),
+                        "weekday_pct": _float("weekday_pct"),
+                    },
+                    "window": {
+                        "start": row.get("window_start", ""),
+                        "end": row.get("window_end", ""),
+                        "fetched_at": row.get("fetched_at", ""),
+                    },
+                }
+    except Exception:
+        pass
+
+    return {
+        "has_campgrounds": False,
+        "park_name": park_name,
+        "rec_gov_url": _rec_gov_url(park_name),
+        "stats": None,
+        "window": None,
+    }
+
+
+def _rec_gov_url(park_name: str) -> str:
+    """Build a recreation.gov search URL for a park's campgrounds."""
+    from urllib.parse import quote_plus
+    return f"https://www.recreation.gov/search?q={quote_plus(park_name)}&entity_type=campground"
+
+
 # ── NPS alerts ────────────────────────────────────────────────────────────────
 
 def load_nps_alerts(park_code: str, api_key: str | None) -> list[dict[str, Any]]:

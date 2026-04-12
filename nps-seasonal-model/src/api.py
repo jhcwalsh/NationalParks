@@ -200,6 +200,18 @@ def park_conditions(unit_code: str):
     }
 
 
+# ── /parks/{unit_code}/camping ─────────────────────────────────────────────────
+
+@app.get("/parks/{unit_code}/camping")
+def park_camping(unit_code: str):
+    """Campsite stats and recreation.gov link for a park."""
+    code = _require_national_park(unit_code)
+    result = mobile.load_campsite_detail(code)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"No camping data for {code}")
+    return result
+
+
 # ── /parks/{unit_code}/webcams ─────────────────────────────────────────────────
 
 @app.get("/parks/{unit_code}/webcams")

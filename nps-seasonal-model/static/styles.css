@@ -318,6 +318,101 @@ html, body {
   font-weight: 600;
 }
 
+/* ── Camping tab ─────────────────────────────────────── */
+.camping-tab {
+  padding: 18px var(--pad) 0;
+}
+.camping-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.camping-stat {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  box-shadow: var(--shadow-card);
+}
+.camping-stat .cs-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 2px 0;
+}
+.camping-stat .cs-label {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin: 0;
+}
+.camping-stat.full-width {
+  grid-column: 1 / -1;
+}
+.camping-avail {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 14px;
+}
+.camping-avail .ca-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.camping-avail .ca-row:last-child { margin-bottom: 0; }
+.camping-avail .ca-label {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.camping-avail .ca-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.camping-avail-bar {
+  height: 8px;
+  background: var(--surface-alt);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 6px 0 10px;
+}
+.camping-avail-bar .fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--peak);
+}
+.camping-avail-bar .fill.good { background: var(--quiet); }
+.camping-avail-bar .fill.fair { background: var(--shoulder); }
+.camping-recgov {
+  display: block;
+  text-align: center;
+  padding: 14px;
+  background: #1a5632;
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+.camping-recgov:active {
+  opacity: 0.85;
+}
+.camping-window {
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-subtle);
+  margin: 0;
+}
+.camping-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+
 /* ── Webcams tab ──────────────────────────────────────── */
 .webcams-tab {
   padding: 18px var(--pad) 0;
