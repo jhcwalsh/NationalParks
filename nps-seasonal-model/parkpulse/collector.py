@@ -301,21 +301,37 @@ async def poll_cycle(conn, db_path: str | None = None) -> dict[str, int]:
     return stats
 
 
-# ── Main loop ───────────────────────────────────────────────────────────────
+# ── Main loops ──────────────────────────────────────────────────────────────
 
 
-async def run_forever(db_path: str | None = None) -> None:
-    """Run the collector loop indefinitely with jittered sleep."""
-    path = db_path or db.DEFAULT_DB_PATH
-    conn = db.connect(path)
-    db.init_schema(conn)
-
+async def _loop(conn, stop: asyncio.Event, db_path: str | None = None) -> None:
+    """Core loop shared by standalone and embedded modes."""
     logger.info(
         "Collector starting — base interval %ds, jitter +/-%ds, lookahead %dd",
         POLL_BASE_INTERVAL, POLL_JITTER, LOOKAHEAD_DAYS,
     )
+    while not stop.is_set():
+        try:
+            await poll_cycle(conn, db_path=db_path)
+        except Exception:
+            logger.exception("Poll cycle failed")
 
-    # Graceful shutdown on SIGINT / SIGTERM
+        jitter = random.uniform(-POLL_JITTER, POLL_JITTER)
+        sleep_s = max(POLL_BASE_INTERVAL + jitter, 10)  # floor at 10s
+        logger.info("Sleeping %.0fs until next poll", sleep_s)
+
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=sleep_s)
+        except asyncio.TimeoutError:
+            pass  # normal — timeout means it's time for the next cycle
+
+
+async def run_forever(db_path: str | None = None) -> None:
+    """Run the collector as a standalone process with signal handling."""
+    path = db_path or db.DEFAULT_DB_PATH
+    conn = db.connect(path)
+    db.init_schema(conn)
+
     stop = asyncio.Event()
 
     def _handle_signal(sig, _frame):
@@ -325,21 +341,34 @@ async def run_forever(db_path: str | None = None) -> None:
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, _handle_signal)
 
-    while not stop.is_set():
-        try:
-            await poll_cycle(conn, db_path=path)
-        except Exception:
-            logger.exception("Poll cycle failed")
-
-        jitter = random.uniform(-POLL_JITTER, POLL_JITTER)
-        sleep_s = max(POLL_BASE_INTERVAL + jitter, 10)  # floor at 10s
-        logger.info("Sleeping %.0fs until next poll", sleep_s)
-
-        # Use wait() so SIGINT/SIGTERM can interrupt the sleep
-        try:
-            await asyncio.wait_for(stop.wait(), timeout=sleep_s)
-        except asyncio.TimeoutError:
-            pass  # normal — timeout means it's time for the next cycle
-
+    await _loop(conn, stop, db_path=path)
     conn.close()
     logger.info("Collector stopped")
+
+
+async def run_embedded(db_path: str | None = None) -> tuple[asyncio.Task, asyncio.Event]:
+    """Start the collector as a background task inside an existing event loop.
+
+    Designed for embedding in a FastAPI lifespan — no signal handling
+    (the parent manages shutdown by setting the returned ``stop`` event).
+
+    Returns (task, stop_event).  To shut down::
+
+        stop_event.set()
+        await task
+    """
+    path = db_path or db.DEFAULT_DB_PATH
+    conn = db.connect(path)
+    db.init_schema(conn)
+
+    stop = asyncio.Event()
+
+    async def _run():
+        try:
+            await _loop(conn, stop, db_path=path)
+        finally:
+            conn.close()
+            logger.info("Embedded collector stopped")
+
+    task = asyncio.create_task(_run(), name="parkpulse-collector")
+    return task, stop

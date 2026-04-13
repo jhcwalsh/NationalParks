@@ -20,3 +20,21 @@ services:
     envVars:
       - key: NPS_API_KEY
         sync: false
+
+  # ── Standalone DuckDB collector (requires paid plan + persistent disk) ──
+  # Uncomment to run as a dedicated background worker instead of embedding
+  # in the FastAPI app.  Attach a persistent disk at /data for DuckDB.
+  #
+  # - type: worker
+  #   name: parkpulse-collector
+  #   runtime: python
+  #   plan: starter  # $7/mo — free plan spins down and has ephemeral disk
+  #   buildCommand: pip install -r nps-seasonal-model/requirements.txt
+  #   startCommand: python -m parkpulse.run --db /data/parkpulse.duckdb
+  #   disk:
+  #     name: parkpulse-data
+  #     mountPath: /data
+  #     sizeGB: 5
+  #   envVars:
+  #     - key: RIDB_API_KEY
+  #       sync: false

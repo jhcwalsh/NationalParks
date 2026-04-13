@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from alert_engine.db import init_db
 from alert_engine.poller import start_scheduler
 from alert_engine.router import router as alert_router
+from parkpulse.collector import run_embedded
 
 # Import the existing NPS API app's routes (src/ is on sys.path above)
 import api as nps_api
@@ -42,12 +43,22 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: init alert DB + start poller.  Shutdown: stop scheduler."""
+    """Startup: init alert DB + start pollers.  Shutdown: stop both."""
     logger.info("Initialising alert engine database…")
     await init_db()
     logger.info("Starting availability poller scheduler…")
     scheduler = await start_scheduler()
+
+    # Start the DuckDB collector as a background task
+    logger.info("Starting DuckDB availability collector…")
+    collector_task, collector_stop = await run_embedded()
+
     yield
+
+    logger.info("Shutting down collector…")
+    collector_stop.set()
+    await collector_task
+
     logger.info("Shutting down poller scheduler…")
     scheduler.shutdown()
 
