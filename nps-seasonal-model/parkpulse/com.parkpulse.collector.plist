@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+    ParkPulse Availability Collector
+    ================================
+    macOS launchd service that runs the DuckDB polling loop continuously.
+
+    Install:
+        cp com.parkpulse.collector.plist ~/Library/LaunchAgents/
+        launchctl load ~/Library/LaunchAgents/com.parkpulse.collector.plist
+
+    Stop:
+        launchctl unload ~/Library/LaunchAgents/com.parkpulse.collector.plist
+
+    Logs:
+        tail -f /usr/local/var/log/parkpulse/collector.log
+
+    Before installing, update the three paths below:
+        1. ProgramArguments  — path to your Python and the repo
+        2. WorkingDirectory   — path to nps-seasonal-model/
+        3. EnvironmentVariables — your RIDB API key
+    -->
+
+    <key>Label</key>
+    <string>com.parkpulse.collector</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <!-- Replace with: which python3  (or your venv python) -->
+        <string>/usr/local/bin/python3</string>
+        <string>-m</string>
+        <string>parkpulse.run</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <!-- Replace with your actual repo path -->
+    <string>/Users/YOU/NationalParks/nps-seasonal-model</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- The collector only needs the RIDB key -->
+        <key>RIDB_API_KEY</key>
+        <string>your_key_here</string>
+    </dict>
+
+    <!-- Start on load, restart on exit -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Wait 10s before restarting after a crash -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <!-- Log files -->
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/parkpulse/collector.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/parkpulse/collector.log</string>
+</dict>
+</plist>
