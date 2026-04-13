@@ -26,6 +26,10 @@ env/
 # Alert engine runtime DB
 parkpulse.db
 
+# DuckDB collector database
+*.duckdb
+*.duckdb.wal
+
 # Secrets — never commit real keys
 .env
 
