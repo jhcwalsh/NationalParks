@@ -1,0 +1,32 @@
+[Unit]
+Description=ParkPulse Campsite Availability Collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=parkpulse
+Group=parkpulse
+WorkingDirectory=/opt/parkpulse/nps-seasonal-model
+ExecStart=/opt/parkpulse/venv/bin/python -m parkpulse.run --db /opt/parkpulse/data/parkpulse.duckdb
+Restart=on-failure
+RestartSec=10
+
+# Environment — load from file so keys stay out of the unit
+EnvironmentFile=/opt/parkpulse/.env
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/parkpulse/data
+ReadWritePaths=/opt/parkpulse/nps-seasonal-model/data
+PrivateTmp=true
+
+# Logging (goes to journalctl)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=parkpulse
+
+[Install]
+WantedBy=multi-user.target
