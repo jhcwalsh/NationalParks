@@ -224,15 +224,23 @@ def _detect_transitions(
     return transitions
 
 
-async def poll_cycle(conn, db_path: str | None = None) -> dict[str, int]:
+async def poll_cycle(
+    conn,
+    prev_snapshot: dict[tuple[str, str], str] | None = None,
+    db_path: str | None = None,
+) -> tuple[dict[str, int], dict[tuple[str, str], str]]:
     """Execute one full poll cycle.
 
-    Returns a stats dict: {n_facilities, n_sites, n_snapshots, n_transitions}.
+    Returns (stats_dict, updated_snapshot) where snapshot is an in-memory
+    dict mapping (campsite_id, date_iso) -> status for use in the next cycle.
     """
     facilities = load_facilities()
     if not facilities:
         logger.warning("No facilities to poll — check data/facilities.json")
-        return {"n_facilities": 0, "n_sites": 0, "n_snapshots": 0, "n_transitions": 0}
+        return (
+            {"n_facilities": 0, "n_sites": 0, "n_snapshots": 0, "n_transitions": 0},
+            prev_snapshot or {},
+        )
 
     poll_id = db.start_poll(conn)
     now = datetime.utcnow()
@@ -245,60 +253,76 @@ async def poll_cycle(conn, db_path: str | None = None) -> dict[str, int]:
         poll_id, len(facilities), today, window_end, len(months),
     )
 
-    # Fetch the previous snapshot for diffing
-    prev_snapshot = db.get_latest_snapshot(conn)
+    if prev_snapshot is None:
+        logger.info("Cold start — loading previous snapshot from DB")
+        prev_snapshot = db.get_latest_snapshot(conn)
 
-    # Async fetch all facilities
-    api_key = os.getenv("RIDB_API_KEY", "")
-    headers = {**RECGOV_HEADERS}
-    if api_key:
-        headers["apikey"] = api_key
-    semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
+    try:
+        # Async fetch all facilities
+        api_key = os.getenv("RIDB_API_KEY", "")
+        headers = {**RECGOV_HEADERS}
+        if api_key:
+            headers["apikey"] = api_key
+        semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
 
-    all_snapshot_rows: list[tuple] = []
-    all_transitions: list[tuple] = []
-    unique_sites: set[str] = set()
-    n_fac_ok = 0
+        all_snapshot_rows: list[tuple] = []
+        all_transitions: list[tuple] = []
+        unique_sites: set[str] = set()
+        n_fac_ok = 0
 
-    async with httpx.AsyncClient(headers=headers, timeout=30.0) as client:
-        for fac in facilities:
-            fac_id = fac["facility_id"]
-            try:
-                sites = await fetch_facility(client, fac_id, months, semaphore)
-                rows = _extract_snapshot_rows(
-                    poll_id, fac_id, sites, today, window_end, now,
-                )
-                all_snapshot_rows.extend(rows)
-                unique_sites.update(site_id for _, _, site_id, *_ in rows)
+        async with httpx.AsyncClient(headers=headers, timeout=30.0) as client:
+            for fac in facilities:
+                fac_id = fac["facility_id"]
+                try:
+                    sites = await fetch_facility(client, fac_id, months, semaphore)
+                    rows = _extract_snapshot_rows(
+                        poll_id, fac_id, sites, today, window_end, now,
+                    )
+                    all_snapshot_rows.extend(rows)
+                    unique_sites.update(site_id for _, _, site_id, *_ in rows)
 
-                transitions = _detect_transitions(
-                    poll_id, rows, prev_snapshot, now,
-                )
-                all_transitions.extend(transitions)
-                n_fac_ok += 1
-            except Exception:
-                logger.exception("Failed to poll facility %s", fac_id)
+                    transitions = _detect_transitions(
+                        poll_id, rows, prev_snapshot, now,
+                    )
+                    all_transitions.extend(transitions)
+                    n_fac_ok += 1
+                except Exception:
+                    logger.exception("Failed to poll facility %s", fac_id)
 
-    # Bulk-write to DuckDB (synchronous, single RW connection)
-    n_snap = db.insert_snapshots(conn, all_snapshot_rows)
-    n_trans = db.insert_transitions(conn, all_transitions)
+        # Bulk-write to DuckDB (synchronous, single RW connection)
+        n_snap = db.insert_snapshots(conn, all_snapshot_rows)
+        n_trans = db.insert_transitions(conn, all_transitions)
 
-    stats = {
-        "n_facilities": n_fac_ok,
-        "n_sites": len(unique_sites),
-        "n_snapshots": n_snap,
-        "n_transitions": n_trans,
-    }
+        stats = {
+            "n_facilities": n_fac_ok,
+            "n_sites": len(unique_sites),
+            "n_snapshots": n_snap,
+            "n_transitions": n_trans,
+        }
 
-    status = "success" if n_fac_ok == len(facilities) else "partial"
-    db.finish_poll(conn, poll_id, status=status, **stats)
+        status = "success" if n_fac_ok == len(facilities) else "partial"
+        db.finish_poll(conn, poll_id, status=status, **stats)
 
-    logger.info(
-        "Poll %d finished: %d facilities, %d sites, %d snapshots, %d transitions [%s]",
-        poll_id, stats["n_facilities"], stats["n_sites"],
-        stats["n_snapshots"], stats["n_transitions"], status,
-    )
-    return stats
+        logger.info(
+            "Poll %d finished: %d facilities, %d sites, %d snapshots, %d transitions [%s]",
+            poll_id, stats["n_facilities"], stats["n_sites"],
+            stats["n_snapshots"], stats["n_transitions"], status,
+        )
+
+        # Update in-memory snapshot for next cycle
+        for row in all_snapshot_rows:
+            _, _, campsite_id, check_date, new_status, _ = row
+            prev_snapshot[(campsite_id, check_date.isoformat())] = new_status
+
+        return stats, prev_snapshot
+
+    except Exception:
+        db.finish_poll(conn, poll_id, status="error", error_message=str(sys.exc_info()[1]))
+        logger.exception("Poll %d failed", poll_id)
+        return (
+            {"n_facilities": 0, "n_sites": 0, "n_snapshots": 0, "n_transitions": 0},
+            prev_snapshot,
+        )
 
 
 # ── Main loops ──────────────────────────────────────────────────────────────
@@ -310,11 +334,9 @@ async def _loop(conn, stop: asyncio.Event, db_path: str | None = None) -> None:
         "Collector starting — base interval %ds, jitter +/-%ds, lookahead %dd",
         POLL_BASE_INTERVAL, POLL_JITTER, LOOKAHEAD_DAYS,
     )
+    snapshot: dict[tuple[str, str], str] | None = None  # loaded on first cycle
     while not stop.is_set():
-        try:
-            await poll_cycle(conn, db_path=db_path)
-        except Exception:
-            logger.exception("Poll cycle failed")
+        _stats, snapshot = await poll_cycle(conn, prev_snapshot=snapshot, db_path=db_path)
 
         jitter = random.uniform(-POLL_JITTER, POLL_JITTER)
         sleep_s = max(POLL_BASE_INTERVAL + jitter, 10)  # floor at 10s
